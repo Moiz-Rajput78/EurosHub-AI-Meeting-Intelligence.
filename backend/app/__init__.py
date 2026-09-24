@@ -1,0 +1,3 @@
+"""
+Meeting Intelligence backend application.
+"""

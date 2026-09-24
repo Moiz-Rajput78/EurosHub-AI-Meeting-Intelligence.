@@ -1,0 +1,131 @@
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
+
+from faster_whisper import WhisperModel
+
+from app.core.config import settings
+
+
+@dataclass
+class TranscriptionSegmentData:
+    start_time: float
+    end_time: float
+    text: str
+
+
+@dataclass
+class TranscriptionResult:
+    language: str | None
+    language_probability: float | None
+    duration: float | None
+    segments: list[TranscriptionSegmentData]
+
+
+@lru_cache(maxsize=1)
+def get_whisper_model() -> WhisperModel:
+    """
+    Load and cache the configured faster-whisper model.
+
+    The model is loaded once per backend process instead of
+    loading it again for every transcription request.
+    """
+
+    return WhisperModel(
+        settings.whisper_model,
+        device=settings.whisper_device,
+        compute_type=settings.whisper_compute_type,
+    )
+
+
+def transcribe_audio(
+    audio_path: str | Path,
+) -> TranscriptionResult:
+    """
+    Transcribe normalized meeting audio using faster-whisper.
+    """
+
+    source = Path(audio_path).resolve()
+
+    if not source.exists():
+        raise FileNotFoundError(
+            "Normalized meeting audio does not exist."
+        )
+
+    if not source.is_file():
+        raise ValueError(
+            "The transcription source is not a valid file."
+        )
+
+    if source.stat().st_size == 0:
+        raise ValueError(
+            "The transcription source is empty."
+        )
+
+    model = get_whisper_model()
+
+    segments_generator, info = model.transcribe(
+        str(source),
+        beam_size=5,
+        vad_filter=True,
+        condition_on_previous_text=True,
+    )
+
+    transcript_segments: list[
+        TranscriptionSegmentData
+    ] = []
+
+    for segment in segments_generator:
+        cleaned_text = segment.text.strip()
+
+        if not cleaned_text:
+            continue
+
+        transcript_segments.append(
+            TranscriptionSegmentData(
+                start_time=float(segment.start),
+                end_time=float(segment.end),
+                text=cleaned_text,
+            )
+        )
+
+    if not transcript_segments:
+        raise ValueError(
+            "Whisper did not detect any speech "
+            "in the recording."
+        )
+
+    language = getattr(
+        info,
+        "language",
+        None,
+    )
+
+    language_probability = getattr(
+        info,
+        "language_probability",
+        None,
+    )
+
+    duration = getattr(
+        info,
+        "duration",
+        None,
+    )
+
+    if duration is not None:
+        duration = float(duration)
+
+    if language_probability is not None:
+        language_probability = float(
+            language_probability
+        )
+
+    return TranscriptionResult(
+        language=language,
+        language_probability=(
+            language_probability
+        ),
+        duration=duration,
+        segments=transcript_segments,
+    )
