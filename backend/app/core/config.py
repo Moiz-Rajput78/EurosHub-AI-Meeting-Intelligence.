@@ -8,84 +8,57 @@ from pydantic_settings import (
 
 
 class Settings(BaseSettings):
-    app_name: str = (
-        "Meeting Intelligence"
-    )
-
+    app_name: str = "Meeting Intelligence"
     app_env: str = "development"
-
     debug: bool = True
-
     host: str = "127.0.0.1"
-
     port: int = 8000
 
-    database_url: str = (
-        "sqlite:///./meetings.db"
-    )
-
+    database_url: str = "sqlite:///./meetings.db"
     upload_dir: str = "./uploads"
-
     max_upload_size_mb: int = 500
 
     ollama_mode: str = "cloud"
-
-    ollama_base_url: str = (
-        "https://ollama.com"
-    )
-
+    ollama_base_url: str = "https://ollama.com"
     ollama_api_key: str = ""
-
-    ollama_model: str = (
-        "gemma4:cloud"
-    )
-
+    ollama_model: str = "gemma4:cloud"
     analysis_chunk_chars: int = 12000
-
     analysis_chunk_overlap_lines: int = 3
-
     ollama_timeout_seconds: int = 180
 
-    # Keep the accurate "small" multilingual model by default.
-    # The model remains configurable through .env.
+    transcription_provider: str = "cloudflare"
+
+    cloudflare_account_id: str = ""
+    cloudflare_api_token: str = ""
+    cloudflare_whisper_model: str = (
+        "@cf/openai/whisper-large-v3-turbo"
+    )
+    cloudflare_whisper_language: str = ""
+    cloudflare_whisper_vad_filter: bool = True
+    cloudflare_whisper_beam_size: int = 5
+    cloudflare_whisper_condition_on_previous_text: bool = True
+    cloudflare_whisper_initial_prompt: str = ""
+    cloudflare_timeout_seconds: int = 300
+    cloudflare_chunk_seconds: int = 300
+    cloudflare_chunk_overlap_seconds: int = 8
+    cloudflare_parallel_workers: int = 2
+    cloudflare_fallback_to_local: bool = True
+
     whisper_model: str = "small"
-
     whisper_device: str = "cpu"
-
     whisper_compute_type: str = "int8"
-
-    # 6 physical cores is a good starting point for the
-    # Ryzen 5 7530U while leaving Windows responsive.
     whisper_cpu_threads: int = 6
-
-    # A single worker is appropriate for the current sequential
-    # meeting-processing pipeline and avoids duplicated CPU load.
     whisper_num_workers: int = 1
-
-    # Beam 3 is a balanced setting: faster than the previous
-    # beam 5 while retaining better decoding quality than greedy
-    # beam 1.
     whisper_beam_size: int = 3
-
     whisper_vad_filter: bool = True
-
     whisper_condition_on_previous_text: bool = True
-
-    # Leave blank for automatic language detection.
-    # Set WHISPER_LANGUAGE=en only when you know the meeting
-    # is English and want to skip language detection.
     whisper_language: str = ""
 
     huggingface_token: str = ""
-
     pyannote_model: str = (
-        "pyannote/"
-        "speaker-diarization-community-1"
+        "pyannote/speaker-diarization-community-1"
     )
-
     pyannote_device: str = "cpu"
-
-    # Match the laptop's 6 physical CPU cores by default.
     pyannote_cpu_threads: int = 6
 
     cors_origins: list[str] = [
@@ -102,9 +75,31 @@ class Settings(BaseSettings):
 
     @property
     def upload_path(self) -> Path:
-        return Path(
-            self.upload_dir
-        ).resolve()
+        return Path(self.upload_dir).resolve()
+
+    @property
+    def normalized_transcription_provider(self) -> str:
+        provider = self.transcription_provider.strip().lower()
+
+        if provider not in {"cloudflare", "local"}:
+            raise ValueError(
+                "TRANSCRIPTION_PROVIDER must be "
+                "'cloudflare' or 'local'."
+            )
+
+        return provider
+
+    @property
+    def cloudflare_ai_base_url(self) -> str:
+        account_id = self.cloudflare_account_id.strip()
+
+        if not account_id:
+            return ""
+
+        return (
+            "https://api.cloudflare.com/client/v4/accounts/"
+            f"{account_id}/ai/run"
+        )
 
 
 @lru_cache

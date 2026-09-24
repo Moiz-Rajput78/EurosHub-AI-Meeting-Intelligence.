@@ -14,6 +14,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.models.meeting import (
     Meeting,
@@ -44,6 +45,9 @@ from app.services.audio_service import (
 from app.services.diarization_service import (
     diarize_audio,
     find_best_speaker_label,
+)
+from app.services.cloudflare_transcription_service import (
+    transcribe_audio_cloudflare,
 )
 from app.services.file_service import (
     delete_saved_file,
@@ -493,12 +497,70 @@ def transcribe_meeting(
             )
             db.commit()
 
-        result = transcribe_audio(
-            audio_path,
-            progress_callback=(
-                update_transcription_progress
-            ),
+        provider = (
+            settings
+            .normalized_transcription_provider
         )
+
+        if provider == "cloudflare":
+            try:
+                logger.info(
+                    "Transcribing meeting %s "
+                    "with Cloudflare Workers AI.",
+                    meeting_id,
+                )
+
+                result = (
+                    transcribe_audio_cloudflare(
+                        audio_path,
+                        progress_callback=(
+                            update_transcription_progress
+                        ),
+                    )
+                )
+
+            except Exception as cloudflare_exc:
+                if not (
+                    settings
+                    .cloudflare_fallback_to_local
+                ):
+                    raise
+
+                logger.warning(
+                    "Cloudflare transcription failed "
+                    "for meeting %s. Falling back "
+                    "to local Faster Whisper. "
+                    "Reason: %s",
+                    meeting_id,
+                    cloudflare_exc,
+                )
+
+                # Reset to the beginning of the same real
+                # transcription stage before local Whisper starts.
+                update_transcription_progress(
+                    0
+                )
+
+                result = transcribe_audio(
+                    audio_path,
+                    progress_callback=(
+                        update_transcription_progress
+                    ),
+                )
+
+        else:
+            logger.info(
+                "Transcribing meeting %s "
+                "with local Faster Whisper.",
+                meeting_id,
+            )
+
+            result = transcribe_audio(
+                audio_path,
+                progress_callback=(
+                    update_transcription_progress
+                ),
+            )
 
         db.execute(
             delete(
