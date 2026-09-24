@@ -46,11 +46,35 @@ class Settings(BaseSettings):
 
     ollama_timeout_seconds: int = 180
 
+    # Keep the accurate "small" multilingual model by default.
+    # The model remains configurable through .env.
     whisper_model: str = "small"
 
     whisper_device: str = "cpu"
 
     whisper_compute_type: str = "int8"
+
+    # 6 physical cores is a good starting point for the
+    # Ryzen 5 7530U while leaving Windows responsive.
+    whisper_cpu_threads: int = 6
+
+    # A single worker is appropriate for the current sequential
+    # meeting-processing pipeline and avoids duplicated CPU load.
+    whisper_num_workers: int = 1
+
+    # Beam 3 is a balanced setting: faster than the previous
+    # beam 5 while retaining better decoding quality than greedy
+    # beam 1.
+    whisper_beam_size: int = 3
+
+    whisper_vad_filter: bool = True
+
+    whisper_condition_on_previous_text: bool = True
+
+    # Leave blank for automatic language detection.
+    # Set WHISPER_LANGUAGE=en only when you know the meeting
+    # is English and want to skip language detection.
+    whisper_language: str = ""
 
     huggingface_token: str = ""
 
@@ -60,6 +84,9 @@ class Settings(BaseSettings):
     )
 
     pyannote_device: str = "cpu"
+
+    # Match the laptop's 6 physical CPU cores by default.
+    pyannote_cpu_threads: int = 6
 
     cors_origins: list[str] = [
         "http://localhost:3000",

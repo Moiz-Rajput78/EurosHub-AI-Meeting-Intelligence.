@@ -33,12 +33,18 @@ def get_whisper_model() -> WhisperModel:
 
     The model is loaded once per backend process instead of
     loading it again for every transcription request.
+
+    CPU thread and worker settings are configurable so the
+    application can use the available CPU efficiently without
+    hard-coding machine-specific behavior.
     """
 
     return WhisperModel(
         settings.whisper_model,
         device=settings.whisper_device,
         compute_type=settings.whisper_compute_type,
+        cpu_threads=settings.whisper_cpu_threads,
+        num_workers=settings.whisper_num_workers,
     )
 
 
@@ -50,11 +56,18 @@ def transcribe_audio(
     """
     Transcribe normalized meeting audio using faster-whisper.
 
+    Accuracy remains the priority. The defaults use a moderate
+    beam size and VAD so CPU processing is faster than the
+    previous beam_size=5 configuration without switching to a
+    low-accuracy model.
+
     Progress is calculated from the latest emitted segment end
     timestamp divided by Whisper's detected audio duration.
     """
 
-    source = Path(audio_path).resolve()
+    source = Path(
+        audio_path
+    ).resolve()
 
     if not source.exists():
         raise FileNotFoundError(
@@ -73,11 +86,24 @@ def transcribe_audio(
 
     model = get_whisper_model()
 
+    configured_language = (
+        settings.whisper_language.strip()
+        if settings.whisper_language
+        else ""
+    )
+
     segments_generator, info = model.transcribe(
         str(source),
-        beam_size=5,
-        vad_filter=True,
-        condition_on_previous_text=True,
+        language=(
+            configured_language
+            or None
+        ),
+        beam_size=settings.whisper_beam_size,
+        vad_filter=settings.whisper_vad_filter,
+        condition_on_previous_text=(
+            settings
+            .whisper_condition_on_previous_text
+        ),
     )
 
     duration_value = getattr(
@@ -94,7 +120,9 @@ def transcribe_audio(
 
     last_reported = -1
 
-    def report(value: int) -> None:
+    def report(
+        value: int,
+    ) -> None:
         nonlocal last_reported
 
         if progress_callback is None:
@@ -102,14 +130,20 @@ def transcribe_audio(
 
         bounded = max(
             0,
-            min(100, int(value)),
+            min(
+                100,
+                int(value),
+            ),
         )
 
         if bounded == last_reported:
             return
 
         last_reported = bounded
-        progress_callback(bounded)
+
+        progress_callback(
+            bounded
+        )
 
     report(0)
 
@@ -118,12 +152,19 @@ def transcribe_audio(
     ] = []
 
     for segment in segments_generator:
-        cleaned_text = segment.text.strip()
+        cleaned_text = (
+            segment.text.strip()
+        )
 
-        if duration and duration > 0:
+        if (
+            duration
+            and duration > 0
+        ):
             report(
                 round(
-                    float(segment.end)
+                    float(
+                        segment.end
+                    )
                     / duration
                     * 100
                 )
@@ -134,8 +175,12 @@ def transcribe_audio(
 
         transcript_segments.append(
             TranscriptionSegmentData(
-                start_time=float(segment.start),
-                end_time=float(segment.end),
+                start_time=float(
+                    segment.start
+                ),
+                end_time=float(
+                    segment.end
+                ),
                 text=cleaned_text,
             )
         )

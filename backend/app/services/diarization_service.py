@@ -11,7 +11,9 @@ from pyannote.audio import Pipeline
 from app.core.config import settings
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(
+    __name__
+)
 
 
 @dataclass
@@ -27,10 +29,43 @@ class DiarizationResult:
     speaker_labels: list[str]
 
 
+def _configure_torch_cpu_threads() -> None:
+    """
+    Configure PyTorch CPU inference for the current machine.
+
+    Pyannote is CPU-heavy on systems without CUDA. Limiting the
+    thread pool to a sensible configurable value helps avoid
+    excessive thread contention while keeping all CPU cores busy.
+    """
+
+    thread_count = max(
+        1,
+        settings.pyannote_cpu_threads,
+    )
+
+    torch.set_num_threads(
+        thread_count
+    )
+
+    try:
+        torch.set_num_interop_threads(
+            1
+        )
+    except RuntimeError:
+        # PyTorch allows the inter-op thread count to be set only
+        # before parallel work starts. If another library already
+        # initialized it, keeping the existing value is safe.
+        pass
+
+
 @lru_cache(maxsize=1)
 def get_diarization_pipeline() -> Pipeline:
     """
     Load and cache the configured pyannote diarization pipeline.
+
+    The accurate community-1 model is preserved. CPU execution is
+    tuned instead of replacing diarization with a lower-quality
+    shortcut.
     """
 
     if not settings.huggingface_token:
@@ -44,7 +79,8 @@ def get_diarization_pipeline() -> Pipeline:
     )
 
     device_name = (
-        settings.pyannote_device
+        settings
+        .pyannote_device
         .strip()
         .lower()
     )
@@ -57,12 +93,18 @@ def get_diarization_pipeline() -> Pipeline:
             )
 
         pipeline.to(
-            torch.device("cuda")
+            torch.device(
+                "cuda"
+            )
         )
 
     else:
+        _configure_torch_cpu_threads()
+
         pipeline.to(
-            torch.device("cpu")
+            torch.device(
+                "cpu"
+            )
         )
 
     return pipeline
@@ -70,13 +112,19 @@ def get_diarization_pipeline() -> Pipeline:
 
 def load_pcm_wav_for_pyannote(
     audio_path: str | Path,
-) -> dict[str, torch.Tensor | int]:
+) -> dict[
+    str,
+    torch.Tensor | int,
+]:
     """
     Load normalized PCM WAV audio directly into memory.
 
     The application already generates 16-bit PCM WAV audio using
     FFmpeg. Passing waveform data directly to pyannote avoids
     TorchCodec's Windows FFmpeg shared-DLL dependency.
+
+    The conversion avoids one unnecessary full-waveform copy,
+    which reduces memory traffic for long meetings.
     """
 
     source = Path(
@@ -181,22 +229,25 @@ def load_pcm_wav_for_pyannote(
                 "is malformed."
             )
 
-        samples = samples.reshape(
-            -1,
-            channel_count,
-        )
-
-        samples = samples.astype(
-            np.float32
-        )
-
-        samples = samples.mean(
-            axis=1
+        samples = (
+            samples
+            .reshape(
+                -1,
+                channel_count,
+            )
+            .astype(
+                np.float32,
+                copy=False,
+            )
+            .mean(
+                axis=1
+            )
         )
 
     else:
         samples = samples.astype(
-            np.float32
+            np.float32,
+            copy=False,
         )
 
     waveform = (
@@ -204,15 +255,11 @@ def load_pcm_wav_for_pyannote(
         / 32768.0
     )
 
-    waveform = waveform[
-        np.newaxis,
-        :
-    ]
-
     waveform_tensor = (
         torch.from_numpy(
-            waveform.copy()
+            waveform
         )
+        .unsqueeze(0)
         .contiguous()
         .float()
     )
@@ -231,6 +278,10 @@ def diarize_audio(
 
     Audio is supplied to pyannote as an in-memory waveform rather
     than a filename, bypassing TorchCodec decoding on Windows.
+
+    torch.inference_mode() disables gradient bookkeeping, which is
+    unnecessary for inference and reduces CPU/memory overhead while
+    preserving diarization behavior.
     """
 
     audio_input = (
@@ -244,9 +295,10 @@ def diarize_audio(
     )
 
     try:
-        output = pipeline(
-            audio_input
-        )
+        with torch.inference_mode():
+            output = pipeline(
+                audio_input
+            )
 
     except Exception:
         logger.exception(
@@ -274,10 +326,16 @@ def diarize_audio(
         )
 
     raw_turns: list[
-        tuple[float, float, str]
+        tuple[
+            float,
+            float,
+            str,
+        ]
     ] = []
 
-    detected_labels: list[str] = []
+    detected_labels: list[
+        str
+    ] = []
 
     for turn, _, speaker in (
         diarization.itertracks(
@@ -335,7 +393,9 @@ def diarize_audio(
             f"Speaker {index + 1}"
         )
 
-    turns: list[SpeakerTurn] = []
+    turns: list[
+        SpeakerTurn
+    ] = []
 
     for (
         start_time,
@@ -344,8 +404,12 @@ def diarize_audio(
     ) in raw_turns:
         turns.append(
             SpeakerTurn(
-                start_time=start_time,
-                end_time=end_time,
+                start_time=(
+                    start_time
+                ),
+                end_time=(
+                    end_time
+                ),
                 speaker_label=(
                     canonical_mapping[
                         original_label
@@ -363,7 +427,9 @@ def diarize_audio(
 
     return DiarizationResult(
         turns=turns,
-        speaker_labels=speaker_labels,
+        speaker_labels=(
+            speaker_labels
+        ),
     )
 
 
@@ -389,21 +455,27 @@ def calculate_overlap(
 
     return max(
         0.0,
-        overlap_end - overlap_start,
+        overlap_end
+        - overlap_start,
     )
 
 
 def find_best_speaker_label(
     segment_start: float,
     segment_end: float,
-    speaker_turns: list[SpeakerTurn],
+    speaker_turns: list[
+        SpeakerTurn
+    ],
 ) -> str | None:
     """
     Assign a transcript segment to the speaker whose diarization
     interval overlaps it for the greatest duration.
     """
 
-    best_label: str | None = None
+    best_label: str | None = (
+        None
+    )
+
     best_overlap = 0.0
 
     for turn in speaker_turns:
@@ -416,6 +488,7 @@ def find_best_speaker_label(
 
         if overlap > best_overlap:
             best_overlap = overlap
+
             best_label = (
                 turn.speaker_label
             )
@@ -434,6 +507,8 @@ def find_best_speaker_label(
             <= midpoint
             <= turn.end_time
         ):
-            return turn.speaker_label
+            return (
+                turn.speaker_label
+            )
 
     return None
