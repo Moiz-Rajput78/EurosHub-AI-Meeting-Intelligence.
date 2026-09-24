@@ -1282,6 +1282,20 @@ def request_structured_analysis(
 
     _validate_configuration()
 
+    mode = (
+        settings
+        .ollama_mode
+        .strip()
+        .lower()
+        or "local"
+    )
+
+    logger.info(
+        "[ANALYSIS] Ollama started. Mode=%s model=%s",
+        mode,
+        settings.ollama_model,
+    )
+
     schema = (
         StructuredMeetingAnalysis
         .model_json_schema()
@@ -1521,8 +1535,17 @@ from the supplied transcript.
             "analysis."
         )
 
-    return (
+    result = (
         _parse_structured_content(
             content
         )
     )
+
+    logger.info(
+        "[ANALYSIS] Ollama completed successfully. "
+        "Mode=%s model=%s",
+        mode,
+        settings.ollama_model,
+    )
+
+    return result

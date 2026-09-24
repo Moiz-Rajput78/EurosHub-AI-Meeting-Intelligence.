@@ -667,6 +667,21 @@ def transcribe_audio_cloudflare(
         )
 
     duration = _get_wav_duration(source)
+
+    logger.info(
+        "[TRANSCRIPTION] Cloudflare started. "
+        "Model=%s duration=%.2fs chunk=%.0fs overlap=%.0fs workers=%s",
+        settings.cloudflare_whisper_model,
+        duration,
+        float(
+            settings.cloudflare_chunk_seconds
+        ),
+        float(
+            settings.cloudflare_chunk_overlap_seconds
+        ),
+        settings.cloudflare_parallel_workers,
+    )
+
     last_reported = -1
 
     def report(value: int) -> None:
@@ -695,6 +710,13 @@ def transcribe_audio_cloudflare(
             source,
             Path(temp_dir),
             duration,
+        )
+
+        logger.info(
+            "[TRANSCRIPTION] Cloudflare prepared %s audio chunk(s).",
+            len(
+                chunks
+            ),
         )
 
         chunk_results: dict[
@@ -823,6 +845,16 @@ def transcribe_audio_cloudflare(
         language = None
 
     report(100)
+
+    logger.info(
+        "[TRANSCRIPTION] Cloudflare completed. "
+        "Segments=%s language=%s duration=%.2fs",
+        len(
+            merged_segments
+        ),
+        language or "unknown",
+        duration,
+    )
 
     return TranscriptionResult(
         language=language,

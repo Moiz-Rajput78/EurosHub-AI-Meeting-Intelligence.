@@ -502,6 +502,12 @@ def transcribe_meeting(
             .normalized_transcription_provider
         )
 
+        logger.info(
+            "[TRANSCRIPTION] Meeting %s selected provider: %s",
+            meeting_id,
+            provider,
+        )
+
         if provider == "cloudflare":
             try:
                 logger.info(
@@ -517,6 +523,12 @@ def transcribe_meeting(
                             update_transcription_progress
                         ),
                     )
+                )
+
+                logger.info(
+                    "[TRANSCRIPTION] Meeting %s completed with "
+                    "Cloudflare Workers AI.",
+                    meeting_id,
                 )
 
             except Exception as cloudflare_exc:
@@ -548,6 +560,12 @@ def transcribe_meeting(
                     ),
                 )
 
+                logger.info(
+                    "[TRANSCRIPTION] Meeting %s completed with "
+                    "local Faster Whisper fallback.",
+                    meeting_id,
+                )
+
         else:
             logger.info(
                 "Transcribing meeting %s "
@@ -560,6 +578,12 @@ def transcribe_meeting(
                 progress_callback=(
                     update_transcription_progress
                 ),
+            )
+
+            logger.info(
+                "[TRANSCRIPTION] Meeting %s completed with "
+                "local Faster Whisper.",
+                meeting_id,
             )
 
         db.execute(
@@ -787,10 +811,28 @@ def diarize_meeting(
     )
 
     try:
+        logger.info(
+            "[DIARIZATION] Meeting %s selected provider: %s",
+            meeting_id,
+            settings.normalized_diarization_provider,
+        )
+
         diarization_result = (
             diarize_audio(
                 audio_path
             )
+        )
+
+        logger.info(
+            "[DIARIZATION] Meeting %s completed. "
+            "Detected %s speaker(s) and %s speaker turn(s).",
+            meeting_id,
+            len(
+                diarization_result.speaker_labels
+            ),
+            len(
+                diarization_result.turns
+            ),
         )
 
         db.execute(

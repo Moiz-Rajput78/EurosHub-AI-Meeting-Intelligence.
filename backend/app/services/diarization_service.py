@@ -936,27 +936,61 @@ def diarize_audio(
         .normalized_diarization_provider
     )
 
+    logger.info(
+        "[DIARIZATION] Provider selected: %s",
+        provider,
+    )
+
     if provider == "local":
         logger.info(
-            "Running local Pyannote speaker diarization."
+            "[DIARIZATION] Local Pyannote started."
         )
 
-        return (
+        result = (
             _diarize_audio_local(
                 audio_path
             )
         )
 
+        logger.info(
+            "[DIARIZATION] Local Pyannote completed. "
+            "Detected %s speaker(s) and %s speaker turn(s).",
+            len(
+                result.speaker_labels
+            ),
+            len(
+                result.turns
+            ),
+        )
+
+        return result
+
     logger.info(
-        "Running Deepgram cloud speaker diarization."
+        "[DIARIZATION] Deepgram cloud started. "
+        "Model=%s diarizer=%s",
+        settings.deepgram_model,
+        settings.deepgram_diarize_model,
     )
 
     try:
-        return (
+        result = (
             _diarize_audio_deepgram(
                 audio_path
             )
         )
+
+        logger.info(
+            "[DIARIZATION] Deepgram cloud completed. "
+            "Detected %s speaker(s) and %s speaker turn(s).",
+            len(
+                result.speaker_labels
+            ),
+            len(
+                result.turns
+            ),
+        )
+
+        return result
 
     except Exception as deepgram_exc:
         if not (
@@ -966,17 +1000,34 @@ def diarize_audio(
             raise
 
         logger.warning(
-            "Deepgram diarization failed. "
+            "[DIARIZATION] Deepgram failed. "
             "Falling back to local Pyannote. "
             "Reason: %s",
             deepgram_exc,
         )
 
-        return (
+        logger.info(
+            "[DIARIZATION] Local Pyannote fallback started."
+        )
+
+        result = (
             _diarize_audio_local(
                 audio_path
             )
         )
+
+        logger.info(
+            "[DIARIZATION] Local Pyannote fallback completed. "
+            "Detected %s speaker(s) and %s speaker turn(s).",
+            len(
+                result.speaker_labels
+            ),
+            len(
+                result.turns
+            ),
+        )
+
+        return result
 
 
 def calculate_overlap(
