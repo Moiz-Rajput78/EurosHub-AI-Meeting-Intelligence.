@@ -12,11 +12,20 @@ import type {
 
 interface Props {
   status: MeetingStatus;
+  progressPercent?: number;
 }
+
+
+const PROGRESS_STATUSES: MeetingStatus[] = [
+  "PROCESSING_AUDIO",
+  "TRANSCRIBING",
+  "GENERATING_NOTES",
+];
 
 
 export function StatusBadge({
   status,
+  progressPercent,
 }: Props) {
   const configurations: Record<
     MeetingStatus,
@@ -88,6 +97,24 @@ export function StatusBadge({
     "GENERATING_NOTES",
   ].includes(status);
 
+  const shouldShowProgress =
+    PROGRESS_STATUSES.includes(
+      status,
+    ) &&
+    typeof progressPercent ===
+      "number";
+
+  const boundedProgress =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        Math.round(
+          progressPercent ?? 0,
+        ),
+      ),
+    );
+
   return (
     <span
       className={[
@@ -107,6 +134,12 @@ export function StatusBadge({
       />
 
       {config.label}
+
+      {shouldShowProgress && (
+        <span className="font-semibold tabular-nums">
+          {boundedProgress}%
+        </span>
+      )}
     </span>
   );
 }

@@ -13,6 +13,7 @@ export interface MeetingListItem {
   title: string;
   original_filename: string;
   status: MeetingStatus;
+  progress_percent: number;
   duration: number | null;
   language: string | null;
   transcript_segment_count: number;
@@ -34,6 +35,7 @@ export interface MeetingDetail {
   original_filename: string;
   stored_filename: string | null;
   status: MeetingStatus;
+  progress_percent: number;
   duration: number | null;
   language: string | null;
   transcript_segment_count: number;
@@ -50,6 +52,7 @@ export interface MeetingDetail {
 export interface MeetingStatusResponse {
   meeting_id: number;
   status: MeetingStatus;
+  progress_percent: number;
   error_message: string | null;
   has_transcript: boolean;
   has_speakers: boolean;
@@ -65,6 +68,7 @@ export interface MeetingUploadResponse {
   original_filename: string;
   stored_filename: string | null;
   status: MeetingStatus;
+  progress_percent: number;
   created_at: string;
   message: string;
 }

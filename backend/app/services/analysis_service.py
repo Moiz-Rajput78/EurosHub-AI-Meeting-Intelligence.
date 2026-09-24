@@ -1,6 +1,7 @@
 import json
 import re
 from dataclasses import dataclass
+from typing import Callable
 
 from app.core.config import settings
 from app.schemas.analysis import (
@@ -637,6 +638,8 @@ CHUNK ANALYSES:
 
 def analyze_transcript(
     lines: list[TranscriptLine],
+    *,
+    progress_callback: Callable[[int], None] | None = None,
 ) -> AnalysisResult:
     chunks = chunk_transcript(
         lines
@@ -647,9 +650,33 @@ def analyze_transcript(
             "The meeting transcript is empty."
         )
 
+    last_reported = -1
+
+    def report(value: int) -> None:
+        nonlocal last_reported
+
+        if progress_callback is None:
+            return
+
+        bounded = max(
+            0,
+            min(100, int(value)),
+        )
+
+        if bounded == last_reported:
+            return
+
+        last_reported = bounded
+        progress_callback(bounded)
+
+    # Transcript preparation and chunking are complete.
+    report(5)
+
     analyses: list[
         StructuredMeetingAnalysis
     ] = []
+
+    total_chunks = len(chunks)
 
     for index, chunk in enumerate(
         chunks,
@@ -659,9 +686,17 @@ def analyze_transcript(
             _analyze_single_chunk(
                 chunk=chunk,
                 chunk_number=index,
-                total_chunks=len(
-                    chunks
-                ),
+                total_chunks=total_chunks,
+            )
+        )
+
+        # Completed chunk analysis owns the 5-80% range.
+        report(
+            5
+            + round(
+                index
+                / total_chunks
+                * 75
             )
         )
 
@@ -669,12 +704,16 @@ def analyze_transcript(
         combined_analysis = (
             analyses[0]
         )
+
+        report(88)
     else:
         preliminary = (
             _merge_without_llm(
                 analyses
             )
         )
+
+        report(84)
 
         combined_analysis = (
             _consolidate_chunk_analyses(
@@ -683,6 +722,8 @@ def analyze_transcript(
                 ]
             )
         )
+
+        report(92)
 
     spoken_transcript = "\n".join(
         line.text
@@ -695,6 +736,10 @@ def analyze_transcript(
             spoken_transcript,
         )
     )
+
+    # Validation is complete. The route reserves 100% for
+    # successful database persistence and COMPLETED status.
+    report(95)
 
     return AnalysisResult(
         analysis=grounded_analysis,

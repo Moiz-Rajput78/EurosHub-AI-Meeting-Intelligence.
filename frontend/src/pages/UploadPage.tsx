@@ -18,6 +18,7 @@ import {
 import {
   analyzeMeeting,
   diarizeMeeting,
+  getMeetingStatus,
   processMeetingAudio,
   transcribeMeeting,
   uploadMeeting,
@@ -37,6 +38,7 @@ interface ProcessingStep {
   label: string;
   description: string;
   status: StepStatus;
+  progress: number;
 }
 
 
@@ -47,6 +49,7 @@ const INITIAL_STEPS: ProcessingStep[] = [
     description:
       "Securely save the meeting file.",
     status: "pending",
+    progress: 0,
   },
   {
     key: "audio",
@@ -54,6 +57,7 @@ const INITIAL_STEPS: ProcessingStep[] = [
     description:
       "Validate media and normalize audio with FFmpeg.",
     status: "pending",
+    progress: 0,
   },
   {
     key: "transcribe",
@@ -61,6 +65,7 @@ const INITIAL_STEPS: ProcessingStep[] = [
     description:
       "Generate a complete timestamped transcript.",
     status: "pending",
+    progress: 0,
   },
   {
     key: "diarize",
@@ -68,6 +73,7 @@ const INITIAL_STEPS: ProcessingStep[] = [
     description:
       "Identify speaker turns using diarization.",
     status: "pending",
+    progress: 0,
   },
   {
     key: "analyze",
@@ -75,6 +81,7 @@ const INITIAL_STEPS: ProcessingStep[] = [
     description:
       "Create structured AI meeting notes.",
     status: "pending",
+    progress: 0,
   },
 ];
 
@@ -123,6 +130,7 @@ export function UploadPage() {
   function updateStep(
     key: string,
     status: StepStatus,
+    progress?: number,
   ) {
     setSteps(
       (current) =>
@@ -132,10 +140,121 @@ export function UploadPage() {
               ? {
                   ...step,
                   status,
+                  progress:
+                    progress === undefined
+                      ? step.progress
+                      : Math.max(
+                          0,
+                          Math.min(
+                            100,
+                            Math.round(
+                              progress,
+                            ),
+                          ),
+                        ),
                 }
               : step,
         ),
     );
+  }
+
+
+  function startProgressPolling(
+    meetingId: number,
+  ) {
+    let stopped = false;
+    let requestInFlight = false;
+
+    async function poll() {
+      if (
+        stopped ||
+        requestInFlight
+      ) {
+        return;
+      }
+
+      requestInFlight = true;
+
+      try {
+        const current =
+          await getMeetingStatus(
+            meetingId,
+          );
+
+        if (stopped) {
+          return;
+        }
+
+        if (
+          current.status ===
+          "PROCESSING_AUDIO"
+        ) {
+          updateStep(
+            "audio",
+            "running",
+            current.progress_percent,
+          );
+        } else if (
+          current.status ===
+          "TRANSCRIBING"
+        ) {
+          updateStep(
+            "transcribe",
+            "running",
+            current.progress_percent,
+          );
+        } else if (
+          current.status ===
+          "DIARIZING"
+        ) {
+          updateStep(
+            "diarize",
+            "running",
+          );
+        } else if (
+          current.status ===
+          "GENERATING_NOTES"
+        ) {
+          updateStep(
+            "analyze",
+            "running",
+            current.progress_percent,
+          );
+        } else if (
+          current.status ===
+          "COMPLETED"
+        ) {
+          updateStep(
+            "analyze",
+            "complete",
+            100,
+          );
+        }
+      } catch {
+        // A temporary polling failure should not interrupt
+        // the real processing request. The next poll retries.
+      } finally {
+        requestInFlight = false;
+      }
+    }
+
+    void poll();
+
+    const intervalId =
+      window.setInterval(
+        () => {
+          void poll();
+        },
+        500,
+      );
+
+    return () => {
+      stopped = true;
+
+      window.clearInterval(
+        intervalId,
+      );
+    };
   }
 
 
@@ -190,6 +309,10 @@ export function UploadPage() {
       | number
       | null = null;
 
+    let stopProgressPolling:
+      | (() => void)
+      | null = null;
+
     try {
       updateStep(
         "upload",
@@ -208,11 +331,18 @@ export function UploadPage() {
       updateStep(
         "upload",
         "complete",
+        100,
       );
+
+      stopProgressPolling =
+        startProgressPolling(
+          meetingId,
+        );
 
       updateStep(
         "audio",
         "running",
+        0,
       );
 
       await processMeetingAudio(
@@ -222,11 +352,13 @@ export function UploadPage() {
       updateStep(
         "audio",
         "complete",
+        100,
       );
 
       updateStep(
         "transcribe",
         "running",
+        0,
       );
 
       await transcribeMeeting(
@@ -236,6 +368,7 @@ export function UploadPage() {
       updateStep(
         "transcribe",
         "complete",
+        100,
       );
 
       updateStep(
@@ -262,6 +395,7 @@ export function UploadPage() {
       updateStep(
         "analyze",
         "running",
+        0,
       );
 
       await analyzeMeeting(
@@ -271,6 +405,7 @@ export function UploadPage() {
       updateStep(
         "analyze",
         "complete",
+        100,
       );
 
       window.setTimeout(
@@ -304,6 +439,7 @@ export function UploadPage() {
           ),
       );
     } finally {
+      stopProgressPolling?.();
       setProcessing(false);
     }
   }
@@ -558,9 +694,48 @@ export function UploadPage() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="break-words text-sm font-medium text-slate-200">
-                      {step.label}
+                    <div className="flex min-w-0 items-center justify-between gap-3">
+                      <div className="break-words text-sm font-medium text-slate-200">
+                        {step.label}
+                      </div>
+
+                      {[
+                        "audio",
+                        "transcribe",
+                        "analyze",
+                      ].includes(
+                        step.key,
+                      ) &&
+                        (step.status ===
+                          "running" ||
+                          step.status ===
+                            "complete") && (
+                          <span className="shrink-0 text-xs font-semibold tabular-nums text-indigo-300">
+                            {step.progress}%
+                          </span>
+                        )}
                     </div>
+
+                    {[
+                      "audio",
+                      "transcribe",
+                      "analyze",
+                    ].includes(
+                      step.key,
+                    ) &&
+                      (step.status ===
+                        "running" ||
+                        step.status ===
+                          "complete") && (
+                        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/8">
+                          <div
+                            className="h-full rounded-full bg-indigo-500 transition-[width] duration-300"
+                            style={{
+                              width: `${step.progress}%`,
+                            }}
+                          />
+                        </div>
+                      )}
 
                     <div className="mt-1 break-words text-xs leading-5 text-slate-500">
                       {

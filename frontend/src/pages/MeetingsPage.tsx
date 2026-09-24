@@ -31,6 +31,15 @@ import type {
 } from "../types";
 
 
+
+
+const ACTIVE_STATUSES = new Set([
+  "PROCESSING_AUDIO",
+  "TRANSCRIBING",
+  "DIARIZING",
+  "GENERATING_NOTES",
+]);
+
 function formatDate(
   value: string,
 ) {
@@ -136,6 +145,55 @@ export function MeetingsPage() {
       cancelled = true;
     };
   }, []);
+
+
+  const hasActiveMeetings =
+    meetings.some(
+      (meeting) =>
+        ACTIVE_STATUSES.has(
+          meeting.status,
+        ),
+    );
+
+
+  useEffect(() => {
+    if (!hasActiveMeetings) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const intervalId =
+      window.setInterval(
+        () => {
+          void getMeetings()
+            .then((result) => {
+              if (cancelled) {
+                return;
+              }
+
+              setMeetings(
+                result.meetings,
+              );
+            })
+            .catch(() => {
+              // Keep the current list during a transient
+              // polling failure. The next interval retries.
+            });
+        },
+        1000,
+      );
+
+    return () => {
+      cancelled = true;
+
+      window.clearInterval(
+        intervalId,
+      );
+    };
+  }, [
+    hasActiveMeetings,
+  ]);
 
 
   const filteredMeetings =
@@ -349,6 +407,9 @@ export function MeetingsPage() {
                         <StatusBadge
                           status={
                             meeting.status
+                          }
+                          progressPercent={
+                            meeting.progress_percent
                           }
                         />
 

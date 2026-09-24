@@ -206,13 +206,29 @@ def analyze_meeting(
         MeetingStatus.GENERATING_NOTES
     )
 
+    meeting.progress_percent = 0
+
     meeting.error_message = None
 
     db.commit()
 
     try:
+        def update_analysis_progress(
+            progress: int,
+        ) -> None:
+            meeting.progress_percent = (
+                max(
+                    0,
+                    min(100, progress),
+                )
+            )
+            db.commit()
+
         result = analyze_transcript(
-            transcript_lines
+            transcript_lines,
+            progress_callback=(
+                update_analysis_progress
+            ),
         )
 
         analysis = result.analysis
@@ -415,6 +431,8 @@ def analyze_meeting(
         meeting.status = (
             MeetingStatus.COMPLETED
         )
+
+        meeting.progress_percent = 100
 
         meeting.error_message = None
 

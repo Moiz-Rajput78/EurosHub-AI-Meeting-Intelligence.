@@ -12,6 +12,7 @@ class MeetingListItemResponse(BaseModel):
     original_filename: str
 
     status: str
+    progress_percent: int
 
     duration: float | None
     language: str | None
@@ -40,6 +41,7 @@ class MeetingDetailResponse(BaseModel):
     stored_filename: str | None
 
     status: str
+    progress_percent: int
 
     duration: float | None
     language: str | None
@@ -61,6 +63,7 @@ class MeetingStatusResponse(BaseModel):
     meeting_id: int
 
     status: str
+    progress_percent: int
 
     error_message: str | None
 

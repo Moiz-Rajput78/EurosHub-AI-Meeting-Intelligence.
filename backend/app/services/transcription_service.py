@@ -1,10 +1,14 @@
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from typing import Callable
 
 from faster_whisper import WhisperModel
 
 from app.core.config import settings
+
+
+ProgressCallback = Callable[[int], None]
 
 
 @dataclass
@@ -40,9 +44,14 @@ def get_whisper_model() -> WhisperModel:
 
 def transcribe_audio(
     audio_path: str | Path,
+    *,
+    progress_callback: ProgressCallback | None = None,
 ) -> TranscriptionResult:
     """
     Transcribe normalized meeting audio using faster-whisper.
+
+    Progress is calculated from the latest emitted segment end
+    timestamp divided by Whisper's detected audio duration.
     """
 
     source = Path(audio_path).resolve()
@@ -71,12 +80,54 @@ def transcribe_audio(
         condition_on_previous_text=True,
     )
 
+    duration_value = getattr(
+        info,
+        "duration",
+        None,
+    )
+
+    duration = (
+        float(duration_value)
+        if duration_value is not None
+        else None
+    )
+
+    last_reported = -1
+
+    def report(value: int) -> None:
+        nonlocal last_reported
+
+        if progress_callback is None:
+            return
+
+        bounded = max(
+            0,
+            min(100, int(value)),
+        )
+
+        if bounded == last_reported:
+            return
+
+        last_reported = bounded
+        progress_callback(bounded)
+
+    report(0)
+
     transcript_segments: list[
         TranscriptionSegmentData
     ] = []
 
     for segment in segments_generator:
         cleaned_text = segment.text.strip()
+
+        if duration and duration > 0:
+            report(
+                round(
+                    float(segment.end)
+                    / duration
+                    * 100
+                )
+            )
 
         if not cleaned_text:
             continue
@@ -107,19 +158,12 @@ def transcribe_audio(
         None,
     )
 
-    duration = getattr(
-        info,
-        "duration",
-        None,
-    )
-
-    if duration is not None:
-        duration = float(duration)
-
     if language_probability is not None:
         language_probability = float(
             language_probability
         )
+
+    report(100)
 
     return TranscriptionResult(
         language=language,

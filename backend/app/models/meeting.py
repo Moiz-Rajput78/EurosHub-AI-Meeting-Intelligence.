@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, Float, String, Text
+from sqlalchemy import DateTime, Enum, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -67,6 +67,12 @@ class Meeting(Base):
         index=True,
     )
 
+    progress_percent: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+
     error_message: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
@@ -91,6 +97,7 @@ class Meeting(Base):
             f"<Meeting("
             f"id={self.id}, "
             f"title='{self.title}', "
-            f"status='{self.status.value}'"
+            f"status='{self.status.value}', "
+            f"progress={self.progress_percent}%"
             f")>"
         )

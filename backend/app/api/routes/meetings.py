@@ -146,6 +146,7 @@ async def upload_meeting(
             status=(
                 MeetingStatus.UPLOADED
             ),
+            progress_percent=0,
         )
 
         db.add(
@@ -168,6 +169,9 @@ async def upload_meeting(
                 meeting.stored_filename
             ),
             status=meeting.status,
+            progress_percent=(
+                meeting.progress_percent
+            ),
             created_at=meeting.created_at,
             message=(
                 "Meeting uploaded successfully. "
@@ -275,6 +279,8 @@ def process_meeting_audio(
         MeetingStatus.PROCESSING_AUDIO
     )
 
+    meeting.progress_percent = 0
+
     meeting.error_message = None
 
     db.commit()
@@ -288,9 +294,26 @@ def process_meeting_audio(
             meeting.file_path
         )
 
+        def update_audio_progress(
+            progress: int,
+        ) -> None:
+            meeting.progress_percent = (
+                max(
+                    0,
+                    min(100, progress),
+                )
+            )
+            db.commit()
+
         new_audio_path = (
             extract_and_normalize_audio(
-                meeting.file_path
+                meeting.file_path,
+                duration=(
+                    media_info.duration
+                ),
+                progress_callback=(
+                    update_audio_progress
+                ),
             )
         )
 
@@ -315,6 +338,8 @@ def process_meeting_audio(
             MeetingStatus.UPLOADED
         )
 
+        meeting.progress_percent = 100
+
         db.commit()
 
         db.refresh(
@@ -325,6 +350,9 @@ def process_meeting_audio(
             id=meeting.id,
             title=meeting.title,
             status=meeting.status,
+            progress_percent=(
+                meeting.progress_percent
+            ),
             duration=meeting.duration,
             message=(
                 "Recording validated and "
@@ -443,6 +471,8 @@ def transcribe_meeting(
         MeetingStatus.TRANSCRIBING
     )
 
+    meeting.progress_percent = 0
+
     meeting.error_message = None
 
     db.commit()
@@ -452,8 +482,22 @@ def transcribe_meeting(
     )
 
     try:
+        def update_transcription_progress(
+            progress: int,
+        ) -> None:
+            meeting.progress_percent = (
+                max(
+                    0,
+                    min(100, progress),
+                )
+            )
+            db.commit()
+
         result = transcribe_audio(
-            audio_path
+            audio_path,
+            progress_callback=(
+                update_transcription_progress
+            ),
         )
 
         db.execute(
@@ -497,6 +541,8 @@ def transcribe_meeting(
         meeting.status = (
             MeetingStatus.UPLOADED
         )
+
+        meeting.progress_percent = 100
 
         db.commit()
 
@@ -668,6 +714,8 @@ def diarize_meeting(
         MeetingStatus.DIARIZING
     )
 
+    meeting.progress_percent = 0
+
     meeting.error_message = None
 
     db.commit()
@@ -775,6 +823,8 @@ def diarize_meeting(
         meeting.status = (
             MeetingStatus.UPLOADED
         )
+
+        meeting.progress_percent = 100
 
         meeting.error_message = None
 

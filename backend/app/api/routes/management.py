@@ -274,6 +274,9 @@ def list_meetings(
                 status=(
                     meeting.status.value
                 ),
+                progress_percent=(
+                    meeting.progress_percent
+                ),
                 duration=(
                     meeting.duration
                 ),
@@ -362,6 +365,9 @@ def get_meeting(
         ),
         status=(
             meeting.status.value
+        ),
+        progress_percent=(
+            meeting.progress_percent
         ),
         duration=(
             meeting.duration
@@ -473,6 +479,9 @@ def get_meeting_status(
         meeting_id=meeting.id,
         status=(
             meeting.status.value
+        ),
+        progress_percent=(
+            meeting.progress_percent
         ),
         error_message=(
             meeting.error_message
@@ -685,6 +694,8 @@ def update_transcript_segment(
             meeting.status = (
                 MeetingStatus.UPLOADED
             )
+
+            meeting.progress_percent = 0
 
             meeting.error_message = None
 
