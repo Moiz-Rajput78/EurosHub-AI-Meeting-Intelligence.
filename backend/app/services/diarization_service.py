@@ -5,6 +5,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
+import requests
 import torch
 from pyannote.audio import Pipeline
 
@@ -270,7 +271,7 @@ def load_pcm_wav_for_pyannote(
     }
 
 
-def diarize_audio(
+def _diarize_audio_local(
     audio_path: str | Path,
 ) -> DiarizationResult:
     """
@@ -431,6 +432,551 @@ def diarize_audio(
             speaker_labels
         ),
     )
+
+
+
+def _validate_deepgram_settings() -> None:
+    """
+    Validate the settings required for Deepgram cloud diarization.
+
+    The API key itself is never included in logs or exceptions.
+    """
+
+    if not settings.deepgram_api_key.strip():
+        raise RuntimeError(
+            "DEEPGRAM_API_KEY is not configured."
+        )
+
+    if not settings.deepgram_api_url.strip():
+        raise RuntimeError(
+            "DEEPGRAM_API_URL is not configured."
+        )
+
+    if not settings.deepgram_model.strip():
+        raise RuntimeError(
+            "DEEPGRAM_MODEL is not configured."
+        )
+
+    if not settings.deepgram_diarize_model.strip():
+        raise RuntimeError(
+            "DEEPGRAM_DIARIZE_MODEL is not configured."
+        )
+
+    if settings.deepgram_timeout_seconds <= 0:
+        raise ValueError(
+            "DEEPGRAM_TIMEOUT_SECONDS must be greater than 0."
+        )
+
+
+def _canonicalize_deepgram_turns(
+    raw_turns: list[
+        tuple[
+            float,
+            float,
+            int,
+        ]
+    ],
+) -> DiarizationResult:
+    """
+    Convert Deepgram's zero-based speaker IDs into the same
+    Speaker 1 / Speaker 2 labels used by the existing Pyannote
+    implementation.
+
+    Adjacent words from the same speaker are merged into compact
+    speaker turns. This keeps downstream transcript-to-speaker
+    matching efficient without changing the existing API contract.
+    """
+
+    if not raw_turns:
+        raise ValueError(
+            "Deepgram did not return any speaker-labelled speech."
+        )
+
+    ordered = sorted(
+        raw_turns,
+        key=lambda item: (
+            item[0],
+            item[1],
+        ),
+    )
+
+    detected_speakers: list[
+        int
+    ] = []
+
+    for _, _, speaker in ordered:
+        if speaker not in detected_speakers:
+            detected_speakers.append(
+                speaker
+            )
+
+    canonical_mapping = {
+        speaker: f"Speaker {index + 1}"
+        for index, speaker in enumerate(
+            detected_speakers
+        )
+    }
+
+    merged: list[
+        tuple[
+            float,
+            float,
+            int,
+        ]
+    ] = []
+
+    max_merge_gap = max(
+        0.0,
+        settings.deepgram_turn_merge_gap_seconds,
+    )
+
+    for start_time, end_time, speaker in ordered:
+        if end_time <= start_time:
+            continue
+
+        if not merged:
+            merged.append(
+                (
+                    start_time,
+                    end_time,
+                    speaker,
+                )
+            )
+            continue
+
+        (
+            previous_start,
+            previous_end,
+            previous_speaker,
+        ) = merged[-1]
+
+        gap = max(
+            0.0,
+            start_time
+            - previous_end,
+        )
+
+        if (
+            speaker == previous_speaker
+            and gap <= max_merge_gap
+        ):
+            merged[-1] = (
+                previous_start,
+                max(
+                    previous_end,
+                    end_time,
+                ),
+                previous_speaker,
+            )
+        else:
+            merged.append(
+                (
+                    start_time,
+                    end_time,
+                    speaker,
+                )
+            )
+
+    turns = [
+        SpeakerTurn(
+            start_time=start_time,
+            end_time=end_time,
+            speaker_label=(
+                canonical_mapping[
+                    speaker
+                ]
+            ),
+        )
+        for (
+            start_time,
+            end_time,
+            speaker,
+        ) in merged
+    ]
+
+    speaker_labels = [
+        canonical_mapping[
+            speaker
+        ]
+        for speaker in detected_speakers
+    ]
+
+    if not turns:
+        raise ValueError(
+            "Deepgram did not return usable speaker turns."
+        )
+
+    return DiarizationResult(
+        turns=turns,
+        speaker_labels=speaker_labels,
+    )
+
+
+def _extract_deepgram_word_turns(
+    payload: dict,
+) -> list[
+    tuple[
+        float,
+        float,
+        int,
+    ]
+]:
+    """
+    Extract speaker-labelled word timestamps from a Deepgram
+    pre-recorded response.
+
+    Deepgram assigns a zero-based `speaker` value to each word
+    when diarization is enabled.
+    """
+
+    results = payload.get(
+        "results"
+    )
+
+    if not isinstance(
+        results,
+        dict,
+    ):
+        raise RuntimeError(
+            "Deepgram response does not contain results."
+        )
+
+    channels = results.get(
+        "channels"
+    )
+
+    if not isinstance(
+        channels,
+        list,
+    ):
+        raise RuntimeError(
+            "Deepgram response does not contain channels."
+        )
+
+    raw_turns: list[
+        tuple[
+            float,
+            float,
+            int,
+        ]
+    ] = []
+
+    for channel in channels:
+        if not isinstance(
+            channel,
+            dict,
+        ):
+            continue
+
+        alternatives = (
+            channel.get(
+                "alternatives"
+            )
+        )
+
+        if not isinstance(
+            alternatives,
+            list,
+        ):
+            continue
+
+        for alternative in alternatives:
+            if not isinstance(
+                alternative,
+                dict,
+            ):
+                continue
+
+            words = alternative.get(
+                "words"
+            )
+
+            if not isinstance(
+                words,
+                list,
+            ):
+                continue
+
+            for word in words:
+                if not isinstance(
+                    word,
+                    dict,
+                ):
+                    continue
+
+                start_value = (
+                    word.get(
+                        "start"
+                    )
+                )
+
+                end_value = (
+                    word.get(
+                        "end"
+                    )
+                )
+
+                speaker_value = (
+                    word.get(
+                        "speaker"
+                    )
+                )
+
+                if (
+                    start_value is None
+                    or end_value is None
+                    or speaker_value is None
+                ):
+                    continue
+
+                try:
+                    start_time = float(
+                        start_value
+                    )
+
+                    end_time = float(
+                        end_value
+                    )
+
+                    speaker = int(
+                        speaker_value
+                    )
+
+                except (
+                    TypeError,
+                    ValueError,
+                ):
+                    continue
+
+                if end_time <= start_time:
+                    continue
+
+                raw_turns.append(
+                    (
+                        start_time,
+                        end_time,
+                        speaker,
+                    )
+                )
+
+    return raw_turns
+
+
+def _diarize_audio_deepgram(
+    audio_path: str | Path,
+) -> DiarizationResult:
+    """
+    Run cloud speaker diarization with Deepgram.
+
+    The normalized WAV is sent directly to Deepgram. We use
+    Deepgram's current batch diarization model selector instead
+    of the deprecated `diarize=true` parameter.
+
+    When DEEPGRAM_LANGUAGE is blank, language detection is
+    enabled. This is appropriate because this request is used
+    for speaker timing rather than as the source of the saved
+    meeting transcript. Cloudflare remains the transcription
+    provider.
+    """
+
+    _validate_deepgram_settings()
+
+    source = Path(
+        audio_path
+    ).resolve()
+
+    if not source.exists():
+        raise FileNotFoundError(
+            "Normalized meeting audio does not exist."
+        )
+
+    if not source.is_file():
+        raise ValueError(
+            "The diarization source is not a valid file."
+        )
+
+    if source.stat().st_size == 0:
+        raise ValueError(
+            "The diarization source is empty."
+        )
+
+    params: dict[
+        str,
+        str,
+    ] = {
+        "model": (
+            settings
+            .deepgram_model
+            .strip()
+        ),
+        "diarize_model": (
+            settings
+            .deepgram_diarize_model
+            .strip()
+        ),
+        "utterances": "true",
+        "punctuate": "false",
+        "smart_format": "false",
+    }
+
+    configured_language = (
+        settings
+        .deepgram_language
+        .strip()
+    )
+
+    if configured_language:
+        params[
+            "language"
+        ] = configured_language
+    else:
+        params[
+            "detect_language"
+        ] = "true"
+
+    headers = {
+        "Authorization": (
+            "Token "
+            + settings
+            .deepgram_api_key
+            .strip()
+        ),
+        "Content-Type": (
+            "audio/wav"
+        ),
+    }
+
+    try:
+        with source.open(
+            "rb"
+        ) as audio_file:
+            response = requests.post(
+                settings
+                .deepgram_api_url
+                .strip(),
+                params=params,
+                headers=headers,
+                data=audio_file,
+                timeout=(
+                    settings
+                    .deepgram_timeout_seconds
+                ),
+            )
+
+    except requests.RequestException as exc:
+        raise RuntimeError(
+            "Deepgram diarization request failed."
+        ) from exc
+
+    if not response.ok:
+        detail = (
+            response.text
+            .strip()
+        )
+
+        if len(detail) > 1000:
+            detail = (
+                detail[:1000]
+                + "..."
+            )
+
+        raise RuntimeError(
+            "Deepgram diarization returned "
+            f"HTTP {response.status_code}. "
+            f"{detail}"
+        )
+
+    try:
+        payload = (
+            response.json()
+        )
+
+    except ValueError as exc:
+        raise RuntimeError(
+            "Deepgram returned an invalid JSON response."
+        ) from exc
+
+    if not isinstance(
+        payload,
+        dict,
+    ):
+        raise RuntimeError(
+            "Deepgram returned an unexpected response."
+        )
+
+    raw_turns = (
+        _extract_deepgram_word_turns(
+            payload
+        )
+    )
+
+    return (
+        _canonicalize_deepgram_turns(
+            raw_turns
+        )
+    )
+
+
+def diarize_audio(
+    audio_path: str | Path,
+) -> DiarizationResult:
+    """
+    Run speaker diarization using the configured provider.
+
+    Supported providers:
+    - deepgram: cloud diarization
+    - local: existing Pyannote implementation
+
+    Deepgram can automatically fall back to Pyannote when
+    DIARIZATION_FALLBACK_TO_LOCAL=true.
+    """
+
+    provider = (
+        settings
+        .normalized_diarization_provider
+    )
+
+    if provider == "local":
+        logger.info(
+            "Running local Pyannote speaker diarization."
+        )
+
+        return (
+            _diarize_audio_local(
+                audio_path
+            )
+        )
+
+    logger.info(
+        "Running Deepgram cloud speaker diarization."
+    )
+
+    try:
+        return (
+            _diarize_audio_deepgram(
+                audio_path
+            )
+        )
+
+    except Exception as deepgram_exc:
+        if not (
+            settings
+            .diarization_fallback_to_local
+        ):
+            raise
+
+        logger.warning(
+            "Deepgram diarization failed. "
+            "Falling back to local Pyannote. "
+            "Reason: %s",
+            deepgram_exc,
+        )
+
+        return (
+            _diarize_audio_local(
+                audio_path
+            )
+        )
 
 
 def calculate_overlap(
