@@ -54,7 +54,9 @@ import {
 import {
   StatusBadge,
 } from "../components/StatusBadge";
-
+import {
+  useAppDialog,
+} from "../components/appDialog";
 import type {
   MeetingDetail,
   MeetingNotesResponse,
@@ -144,6 +146,11 @@ function NotesSection({
 
 
 export function MeetingDetailPage() {
+  const {
+    alert,
+    prompt,
+  } = useAppDialog();
+
   const {
     meetingId,
   } = useParams();
@@ -414,11 +421,15 @@ export function MeetingDetailPage() {
         nextMeeting,
       );
     } catch (caught) {
-      window.alert(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to regenerate meeting notes.",
-      );
+      await alert({
+        title: "Unable to regenerate notes",
+        description:
+          caught instanceof Error
+            ? caught.message
+            : "The meeting notes could not be regenerated. Please try again.",
+        actionLabel: "Close",
+        tone: "danger",
+      });
     } finally {
       setRegenerating(false);
     }
@@ -433,10 +444,15 @@ export function MeetingDetailPage() {
       speaker.speaker_label;
 
     const nextName =
-      window.prompt(
-        `Rename ${speaker.speaker_label}`,
-        current,
-      );
+      await prompt({
+        title: `Rename ${speaker.speaker_label}`,
+        description:
+          "Enter the participant name you want to display throughout this meeting transcript.",
+        defaultValue: current,
+        placeholder: "Participant name",
+        confirmLabel: "Save name",
+        cancelLabel: "Cancel",
+      });
 
     if (
       !nextName ||
@@ -469,11 +485,15 @@ export function MeetingDetailPage() {
         );
       }
     } catch (caught) {
-      window.alert(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to rename speaker.",
-      );
+      await alert({
+        title: "Unable to rename speaker",
+        description:
+          caught instanceof Error
+            ? caught.message
+            : "The speaker name could not be updated. Please try again.",
+        actionLabel: "Close",
+        tone: "danger",
+      });
     }
   }
 
@@ -529,11 +549,15 @@ export function MeetingDetailPage() {
 
       setNotes(null);
     } catch (caught) {
-      window.alert(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to update transcript.",
-      );
+      await alert({
+        title: "Unable to update transcript",
+        description:
+          caught instanceof Error
+            ? caught.message
+            : "The transcript segment could not be saved. Please try again.",
+        actionLabel: "Close",
+        tone: "danger",
+      });
     }
   }
 

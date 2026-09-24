@@ -22,6 +22,9 @@ import {
 import {
   StatusBadge,
 } from "../components/StatusBadge";
+import {
+  useAppDialog,
+} from "../components/appDialog";
 
 import type {
   MeetingListItem,
@@ -60,6 +63,11 @@ function formatDuration(
 
 
 export function MeetingsPage() {
+  const {
+    confirm,
+    alert,
+  } = useAppDialog();
+
   const [
     meetings,
     setMeetings,
@@ -160,9 +168,15 @@ export function MeetingsPage() {
     meeting: MeetingListItem,
   ) {
     const confirmed =
-      window.confirm(
-        `Delete "${meeting.title}"?\n\nThis permanently removes the meeting, transcript, speakers, notes, and stored files.`,
-      );
+      await confirm({
+        title: "Delete meeting?",
+        description:
+          `“${meeting.title}” and its transcript, speakers, notes, and stored files will be permanently removed. This action cannot be undone.`,
+        confirmLabel:
+          "Delete meeting",
+        cancelLabel: "Keep meeting",
+        tone: "danger",
+      });
 
     if (!confirmed) {
       return;
@@ -186,11 +200,16 @@ export function MeetingsPage() {
           ),
       );
     } catch (caught) {
-      window.alert(
-        caught instanceof Error
-          ? caught.message
-          : "Unable to delete meeting.",
-      );
+      await alert({
+        title:
+          "Unable to delete meeting",
+        description:
+          caught instanceof Error
+            ? caught.message
+            : "The meeting could not be deleted. Please try again.",
+        actionLabel: "Close",
+        tone: "danger",
+      });
     } finally {
       setDeletingId(null);
     }

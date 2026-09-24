@@ -1,13 +1,86 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="https://www.euroshub.com/favicon.ico?favicon.04pjejq~s73z3.ico"
+    />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
+    <meta
+      name="theme-color"
+      content="#080b12"
+    />
+
+    <meta
+      name="description"
+      content="Meeting Intelligence - AI-powered meeting transcription, speaker detection, and intelligent meeting notes."
+    />
+
+    <title>Meeting Intelligence | EurosHub</title>
+
+    <script>
+      (function () {
+        try {
+          var storageKey =
+            "meeting-intelligence-theme";
+
+          var stored =
+            localStorage.getItem(
+              storageKey
+            );
+
+          var theme =
+            stored === "light" ||
+            stored === "dark"
+              ? stored
+              : window.matchMedia(
+                  "(prefers-color-scheme: light)"
+                ).matches
+                ? "light"
+                : "dark";
+
+          document.documentElement.setAttribute(
+            "data-theme",
+            theme
+          );
+
+          var meta =
+            document.querySelector(
+              'meta[name="theme-color"]'
+            );
+
+          if (meta) {
+            meta.setAttribute(
+              "content",
+              theme === "light"
+                ? "#f8faf9"
+                : "#080b12"
+            );
+          }
+        } catch {
+          document.documentElement.setAttribute(
+            "data-theme",
+            "dark"
+          );
+        }
+      })();
+    </script>
   </head>
+
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+
+    <script
+      type="module"
+      src="/src/main.tsx"
+    ></script>
   </body>
 </html>

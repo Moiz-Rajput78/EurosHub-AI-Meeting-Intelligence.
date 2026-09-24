@@ -1,6 +1,10 @@
 @import "tailwindcss";
 
 
+/* ============================================================
+   Meeting Intelligence Theme System
+   ============================================================ */
+
 :root {
   font-family:
     Inter,
@@ -11,16 +15,77 @@
     "Segoe UI",
     sans-serif;
 
-  color: #f8fafc;
-  background: #080b12;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  color-scheme: dark;
+
+  --app-bg: #080b12;
+  --app-bg-secondary: #0b0f18;
+  --surface: #0d111b;
+  --surface-elevated: #111722;
+  --surface-soft: rgba(255, 255, 255, 0.05);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  --text-subtle: #475569;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.12);
+
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-soft: rgba(99, 102, 241, 0.1);
+  --accent-text: #a5b4fc;
+
+  --scroll-track: #080b12;
+  --scroll-thumb: #252b3a;
+  --scroll-thumb-hover: #343c50;
 }
 
+
+/* ============================================================
+   EurosHub-inspired Light Theme
+   ============================================================ */
+
+html[data-theme="light"] {
+  color-scheme: light;
+
+  --app-bg: #f8faf9;
+  --app-bg-secondary: #ffffff;
+
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-soft: #f4f7f6;
+  --surface-hover: #edf4f2;
+
+  --text-primary: #111318;
+  --text-secondary: #344054;
+  --text-muted: #667085;
+  --text-subtle: #98a2b3;
+
+  --border: #e6eae9;
+  --border-strong: #d8dfdd;
+
+  --accent: #18b8a6;
+  --accent-hover: #10a594;
+  --accent-soft: #e8f8f5;
+  --accent-text: #0f8f82;
+
+  --scroll-track: #f5f7f6;
+  --scroll-thumb: #cdd8d5;
+  --scroll-thumb-hover: #aebfbb;
+}
+
+
+/* ============================================================
+   Base
+   ============================================================ */
 
 * {
   box-sizing: border-box;
@@ -30,7 +95,7 @@
 html {
   min-width: 320px;
   min-height: 100%;
-  background: #080b12;
+  background: var(--app-bg);
 }
 
 
@@ -38,13 +103,31 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+
+  color: var(--text-primary);
+
   background:
     radial-gradient(
       circle at 75% -10%,
       rgba(99, 102, 241, 0.08),
       transparent 28%
     ),
-    #080b12;
+    var(--app-bg);
+
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+
+html[data-theme="light"] body {
+  background:
+    radial-gradient(
+      circle at 78% -10%,
+      rgba(24, 184, 166, 0.08),
+      transparent 30%
+    ),
+    #f8faf9;
 }
 
 
@@ -74,14 +157,19 @@ a {
 
 ::selection {
   color: #ffffff;
-  background: rgba(
-    99,
-    102,
-    241,
-    0.55
-  );
+  background: rgba(99, 102, 241, 0.55);
 }
 
+
+html[data-theme="light"] ::selection {
+  color: #ffffff;
+  background: rgba(24, 184, 166, 0.75);
+}
+
+
+/* ============================================================
+   Scrollbars
+   ============================================================ */
 
 ::-webkit-scrollbar {
   width: 10px;
@@ -90,17 +178,596 @@ a {
 
 
 ::-webkit-scrollbar-track {
-  background: #080b12;
+  background: var(--scroll-track);
 }
 
 
 ::-webkit-scrollbar-thumb {
-  border: 3px solid #080b12;
+  border: 3px solid var(--scroll-track);
   border-radius: 999px;
-  background: #252b3a;
+  background: var(--scroll-thumb);
 }
 
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #343c50;
+  background: var(--scroll-thumb-hover);
+}
+
+
+/* ============================================================
+   Smooth theme transitions
+   ============================================================ */
+
+body,
+aside,
+header,
+main,
+section,
+nav,
+div,
+button,
+input,
+textarea {
+  transition-property:
+    background-color,
+    border-color,
+    color,
+    box-shadow;
+
+  transition-duration: 160ms;
+  transition-timing-function: ease;
+}
+
+
+/* ============================================================
+   LIGHT THEME
+   Existing Dark Tailwind Surface Overrides
+
+   These allow the current application components to support
+   both themes without changing their business logic.
+   ============================================================ */
+
+
+/* ------------------------------------------------------------
+   Main dark backgrounds -> light surfaces
+   ------------------------------------------------------------ */
+
+html[data-theme="light"] [class~="bg-[#080b12]"] {
+  background-color: #f8faf9 !important;
+}
+
+
+html[data-theme="light"] [class~="bg-[#0d111b]"] {
+  background-color: #ffffff !important;
+}
+
+
+html[data-theme="light"] [class~="bg-[#111722]"] {
+  background-color: #ffffff !important;
+}
+
+
+html[data-theme="light"] [class~="bg-[#0b0f18]/95"] {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+}
+
+
+html[data-theme="light"] [class~="bg-[#080b12]/85"] {
+  background-color: rgba(248, 250, 249, 0.9) !important;
+}
+
+
+/* ------------------------------------------------------------
+   White transparent surfaces
+   ------------------------------------------------------------ */
+
+html[data-theme="light"] [class~="bg-white/5"] {
+  background-color: #f4f7f6 !important;
+}
+
+
+html[data-theme="light"] [class~="bg-white/8"] {
+  background-color: #edf4f2 !important;
+}
+
+
+html[data-theme="light"] [class~="bg-white/[0.015]"] {
+  background-color: rgba(24, 184, 166, 0.025) !important;
+}
+
+
+html[data-theme="light"] [class~="bg-white/[0.02]"] {
+  background-color: rgba(24, 184, 166, 0.03) !important;
+}
+
+
+html[data-theme="light"] [class~="bg-white/[0.025]"] {
+  background-color: rgba(24, 184, 166, 0.035) !important;
+}
+
+
+/* ------------------------------------------------------------
+   Borders
+   ------------------------------------------------------------ */
+
+html[data-theme="light"] [class~="border-white/6"],
+html[data-theme="light"] [class~="border-white/8"] {
+  border-color: #e6eae9 !important;
+}
+
+
+html[data-theme="light"] [class~="border-white/10"],
+html[data-theme="light"] [class~="border-white/12"] {
+  border-color: #d8dfdd !important;
+}
+
+
+html[data-theme="light"] [class~="divide-white/6"] > :not(:last-child) {
+  border-color: #edf0ef !important;
+}
+
+
+/* ------------------------------------------------------------
+   Typography
+   ------------------------------------------------------------ */
+
+html[data-theme="light"] [class~="text-white"],
+html[data-theme="light"] [class~="text-slate-100"] {
+  color: #111318 !important;
+}
+
+
+html[data-theme="light"] [class~="text-slate-200"] {
+  color: #27313a !important;
+}
+
+
+html[data-theme="light"] [class~="text-slate-300"] {
+  color: #344054 !important;
+}
+
+
+html[data-theme="light"] [class~="text-slate-400"] {
+  color: #596574 !important;
+}
+
+
+html[data-theme="light"] [class~="text-slate-500"] {
+  color: #667085 !important;
+}
+
+
+html[data-theme="light"] [class~="text-slate-600"] {
+  color: #8a949f !important;
+}
+
+
+html[data-theme="light"] [class~="text-slate-700"] {
+  color: #98a2b3 !important;
+}
+
+
+/* ------------------------------------------------------------
+   EurosHub teal replaces primary indigo in light mode
+   ------------------------------------------------------------ */
+
+html[data-theme="light"] [class~="bg-indigo-500"] {
+  background-color: #18b8a6 !important;
+}
+
+
+html[data-theme="light"] [class~="hover:bg-indigo-400"]:hover {
+  background-color: #10a594 !important;
+}
+
+
+html[data-theme="light"] [class~="bg-indigo-500/15"] {
+  background-color: rgba(24, 184, 166, 0.15) !important;
+}
+
+
+html[data-theme="light"] [class~="bg-indigo-500/10"] {
+  background-color: rgba(24, 184, 166, 0.1) !important;
+}
+
+
+html[data-theme="light"] [class~="bg-indigo-500/8"] {
+  background-color: rgba(24, 184, 166, 0.08) !important;
+}
+
+
+html[data-theme="light"] [class~="bg-indigo-500/[0.055]"] {
+  background-color: rgba(24, 184, 166, 0.07) !important;
+}
+
+
+html[data-theme="light"] [class~="bg-indigo-500/[0.025]"] {
+  background-color: rgba(24, 184, 166, 0.04) !important;
+}
+
+
+html[data-theme="light"] [class~="hover:bg-indigo-500/15"]:hover {
+  background-color: rgba(24, 184, 166, 0.15) !important;
+}
+
+
+html[data-theme="light"] [class~="hover:bg-indigo-500/[0.025]"]:hover {
+  background-color: rgba(24, 184, 166, 0.05) !important;
+}
+
+
+html[data-theme="light"] [class~="text-indigo-300"] {
+  color: #0f8f82 !important;
+}
+
+
+html[data-theme="light"] [class~="text-indigo-200"] {
+  color: #0c756c !important;
+}
+
+
+html[data-theme="light"] [class~="border-indigo-500/15"],
+html[data-theme="light"] [class~="border-indigo-500/20"] {
+  border-color: rgba(24, 184, 166, 0.25) !important;
+}
+
+
+html[data-theme="light"] [class~="border-indigo-500/30"],
+html[data-theme="light"] [class~="border-indigo-500/40"] {
+  border-color: rgba(24, 184, 166, 0.4) !important;
+}
+
+
+html[data-theme="light"] [class~="focus:border-indigo-500/50"]:focus {
+  border-color: rgba(24, 184, 166, 0.65) !important;
+}
+
+
+html[data-theme="light"] [class~="border-indigo-400"] {
+  border-color: #18b8a6 !important;
+}
+
+
+html[data-theme="light"] [class~="hover:border-indigo-400/30"]:hover {
+  border-color: rgba(24, 184, 166, 0.45) !important;
+}
+
+
+html[data-theme="light"] [class~="bg-indigo-400"] {
+  background-color: #18b8a6 !important;
+}
+
+
+/* ------------------------------------------------------------
+   Gradient/logo mapping
+   ------------------------------------------------------------ */
+
+html[data-theme="light"] [class~="from-indigo-500"] {
+  --tw-gradient-from: #18b8a6 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to:
+    rgb(24 184 166 / 0)
+    var(--tw-gradient-to-position) !important;
+}
+
+
+html[data-theme="light"] [class~="to-violet-600"] {
+  --tw-gradient-to: #0e9f91 var(--tw-gradient-to-position) !important;
+}
+
+
+html[data-theme="light"] [class~="from-indigo-500/10"] {
+  --tw-gradient-from:
+    rgba(24, 184, 166, 0.11)
+    var(--tw-gradient-from-position) !important;
+
+  --tw-gradient-to:
+    rgba(24, 184, 166, 0)
+    var(--tw-gradient-to-position) !important;
+}
+
+
+html[data-theme="light"] [class~="to-violet-500/5"] {
+  --tw-gradient-to:
+    rgba(24, 184, 166, 0.04)
+    var(--tw-gradient-to-position) !important;
+}
+
+
+/* ------------------------------------------------------------
+   Dashboard hero
+   ------------------------------------------------------------ */
+
+html[data-theme="light"] [class~="from-[#121827]"] {
+  --tw-gradient-from:
+    #ffffff
+    var(--tw-gradient-from-position) !important;
+
+  --tw-gradient-to:
+    rgb(255 255 255 / 0)
+    var(--tw-gradient-to-position) !important;
+}
+
+
+html[data-theme="light"] [class~="via-[#0e1320]"] {
+  --tw-gradient-via:
+    #fbfdfc
+    var(--tw-gradient-via-position) !important;
+}
+
+
+html[data-theme="light"] [class~="to-[#0b0f18]"] {
+  --tw-gradient-to:
+    #f1faf8
+    var(--tw-gradient-to-position) !important;
+}
+
+
+html[data-theme="light"] [class~="bg-indigo-500/15"][class~="blur-3xl"] {
+  background-color: rgba(24, 184, 166, 0.12) !important;
+}
+
+
+/* ------------------------------------------------------------
+   Hover states
+   ------------------------------------------------------------ */
+
+html[data-theme="light"] [class~="hover:bg-white/5"]:hover {
+  background-color: #edf4f2 !important;
+}
+
+
+html[data-theme="light"] [class~="hover:bg-white/6"]:hover {
+  background-color: #eaf2f0 !important;
+}
+
+
+html[data-theme="light"] [class~="hover:bg-white/8"]:hover {
+  background-color: #e5efed !important;
+}
+
+
+html[data-theme="light"] [class~="hover:bg-white/[0.015]"]:hover,
+html[data-theme="light"] [class~="hover:bg-white/[0.02]"]:hover,
+html[data-theme="light"] [class~="hover:bg-white/[0.025]"]:hover {
+  background-color: rgba(24, 184, 166, 0.045) !important;
+}
+
+
+html[data-theme="light"] [class~="hover:text-white"]:hover,
+html[data-theme="light"] [class~="hover:text-slate-100"]:hover {
+  color: #111318 !important;
+}
+
+
+html[data-theme="light"] [class~="hover:text-slate-300"]:hover {
+  color: #344054 !important;
+}
+
+
+/* ------------------------------------------------------------
+   Shadows
+   ------------------------------------------------------------ */
+
+html[data-theme="light"] [class~="shadow-black/20"],
+html[data-theme="light"] [class~="shadow-black/40"] {
+  --tw-shadow-color: rgba(16, 24, 40, 0.08) !important;
+}
+
+
+html[data-theme="light"] [class~="shadow-indigo-950/30"],
+html[data-theme="light"] [class~="shadow-indigo-950/50"] {
+  --tw-shadow-color: rgba(24, 184, 166, 0.16) !important;
+}
+
+
+/* ------------------------------------------------------------
+   Status colors - tuned for white surfaces
+   ------------------------------------------------------------ */
+
+html[data-theme="light"] [class~="text-blue-300"] {
+  color: #2563eb !important;
+}
+
+
+html[data-theme="light"] [class~="text-violet-300"] {
+  color: #7c3aed !important;
+}
+
+
+html[data-theme="light"] [class~="text-cyan-300"] {
+  color: #087f9d !important;
+}
+
+
+html[data-theme="light"] [class~="text-amber-300"] {
+  color: #b45309 !important;
+}
+
+
+html[data-theme="light"] [class~="text-emerald-300"] {
+  color: #047857 !important;
+}
+
+
+html[data-theme="light"] [class~="text-red-300"] {
+  color: #b42318 !important;
+}
+
+
+html[data-theme="light"] [class~="bg-blue-500/10"] {
+  background-color: #eff6ff !important;
+}
+
+
+html[data-theme="light"] [class~="bg-violet-500/10"] {
+  background-color: #f5f3ff !important;
+}
+
+
+html[data-theme="light"] [class~="bg-cyan-500/10"] {
+  background-color: #ecfeff !important;
+}
+
+
+html[data-theme="light"] [class~="bg-amber-500/10"] {
+  background-color: #fffbeb !important;
+}
+
+
+html[data-theme="light"] [class~="bg-emerald-500/10"] {
+  background-color: #ecfdf5 !important;
+}
+
+
+html[data-theme="light"] [class~="bg-red-500/10"],
+html[data-theme="light"] [class~="bg-red-500/8"] {
+  background-color: #fef3f2 !important;
+}
+
+
+html[data-theme="light"] [class~="border-blue-500/30"] {
+  border-color: #bfdbfe !important;
+}
+
+
+html[data-theme="light"] [class~="border-violet-500/30"] {
+  border-color: #ddd6fe !important;
+}
+
+
+html[data-theme="light"] [class~="border-cyan-500/30"] {
+  border-color: #a5f3fc !important;
+}
+
+
+html[data-theme="light"] [class~="border-amber-500/30"] {
+  border-color: #fde68a !important;
+}
+
+
+html[data-theme="light"] [class~="border-emerald-500/30"] {
+  border-color: #a7f3d0 !important;
+}
+
+
+html[data-theme="light"] [class~="border-red-500/20"],
+html[data-theme="light"] [class~="border-red-500/30"] {
+  border-color: #fecaca !important;
+}
+
+
+/* ------------------------------------------------------------
+   Video area should remain dark even in light mode
+   ------------------------------------------------------------ */
+
+html[data-theme="light"] video {
+  background: #000000;
+}
+
+
+/* ============================================================
+   Theme Toggle
+   ============================================================ */
+
+.theme-toggle {
+  position: relative;
+
+  display: inline-flex;
+  width: 64px;
+  height: 34px;
+
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 4px;
+
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+
+  background: var(--surface-soft);
+
+  color: var(--text-muted);
+
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+
+.theme-toggle:hover {
+  border-color: rgba(24, 184, 166, 0.5);
+}
+
+
+.theme-toggle-icon {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  width: 25px;
+  height: 25px;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+}
+
+
+.theme-toggle-indicator {
+  position: absolute;
+
+  z-index: 1;
+
+  top: 4px;
+  left: 4px;
+
+  width: 25px;
+  height: 25px;
+
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 2px 8px rgba(16, 24, 40, 0.15);
+
+  transform: translateX(0);
+
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease;
+}
+
+
+html[data-theme="dark"] .theme-toggle-indicator {
+  transform: translateX(30px);
+  background: #1c2230;
+}
+
+
+html[data-theme="light"] .theme-toggle-sun {
+  color: #111318;
+}
+
+
+html[data-theme="dark"] .theme-toggle-moon {
+  color: #f8fafc;
+}
+
+
+/* ============================================================
+   Light-mode sidebar/header polish
+   ============================================================ */
+
+html[data-theme="light"] .app-sidebar {
+  box-shadow:
+    8px 0 30px rgba(16, 24, 40, 0.025);
+}
+
+
+html[data-theme="light"] .app-header {
+  box-shadow:
+    0 1px 0 rgba(16, 24, 40, 0.02);
 }
