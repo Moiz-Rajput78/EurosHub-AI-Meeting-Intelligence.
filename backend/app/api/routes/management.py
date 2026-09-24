@@ -31,6 +31,10 @@ from app.models.speaker import Speaker
 from app.models.transcript import (
     TranscriptSegment,
 )
+from app.services.audio_service import (
+    delete_browser_playback_media,
+)
+
 from app.schemas.management import (
     MeetingDeleteResponse,
     MeetingDetailResponse,
@@ -589,6 +593,10 @@ def delete_meeting(
                 "The meeting could not be deleted."
             ),
         ) from exc
+
+    delete_browser_playback_media(
+        uploaded_file_path
+    )
 
     _safe_delete_file(
         uploaded_file_path

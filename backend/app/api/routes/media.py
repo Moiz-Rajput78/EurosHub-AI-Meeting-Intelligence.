@@ -14,6 +14,9 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.database import get_db
 from app.models.meeting import Meeting
+from app.services.audio_service import (
+    ensure_browser_playback_media,
+)
 
 
 logger = logging.getLogger(
@@ -71,6 +74,46 @@ def _resolve_safe_media_path(
     return media_path
 
 
+def _get_playback_media_path(
+    meeting: Meeting,
+    source_path: Path,
+) -> Path:
+    """
+    Return the best file for browser playback.
+
+    WebM recordings are converted to a cached browser-safe
+    MP4. This fixes Chrome/MediaRecorder files that have no
+    usable duration metadata and would otherwise show an
+    incorrect duration in the HTML media player.
+
+    Other supported formats are served directly.
+    """
+
+    if (
+        source_path.suffix.lower()
+        != ".webm"
+    ):
+        return source_path
+
+    try:
+        playback_path = Path(
+            ensure_browser_playback_media(
+                source_path
+            )
+        ).resolve()
+    except HTTPException:
+        logger.exception(
+            "Could not prepare browser playback "
+            "media for meeting %s.",
+            meeting.id,
+        )
+        raise
+
+    return _resolve_safe_media_path(
+        str(playback_path)
+    )
+
+
 @router.get(
     "/{meeting_id}/media",
     response_class=FileResponse,
@@ -82,11 +125,15 @@ def get_meeting_media(
     ),
 ) -> FileResponse:
     """
-    Stream the original uploaded meeting recording.
+    Stream the meeting recording.
+
+    For problematic WebM recordings, a browser-safe MP4
+    playback copy is generated once and then cached. This
+    allows the browser to read the full duration and seek
+    correctly while preserving the original uploaded file.
 
     FileResponse supports browser media playback and
-    byte-range requests, allowing users to seek within
-    audio/video recordings.
+    byte-range requests.
     """
 
     meeting = db.get(
@@ -113,9 +160,30 @@ def get_meeting_media(
             ),
         )
 
-    media_path = (
+    source_path = (
         _resolve_safe_media_path(
             meeting.file_path
+        )
+    )
+
+    if (
+        not source_path.exists()
+        or not source_path.is_file()
+    ):
+        raise HTTPException(
+            status_code=(
+                status.HTTP_404_NOT_FOUND
+            ),
+            detail=(
+                "The meeting recording "
+                "could not be found."
+            ),
+        )
+
+    media_path = (
+        _get_playback_media_path(
+            meeting,
+            source_path,
         )
     )
 
@@ -128,28 +196,48 @@ def get_meeting_media(
                 status.HTTP_404_NOT_FOUND
             ),
             detail=(
-                "The meeting recording "
+                "The browser playback file "
                 "could not be found."
             ),
         )
 
-    media_type, _ = (
-        mimetypes.guess_type(
-            meeting.original_filename
-        )
+    using_browser_mp4 = (
+        media_path.suffix.lower()
+        == ".mp4"
+        and source_path.suffix.lower()
+        == ".webm"
     )
 
-    if not media_type:
-        media_type = (
-            "application/octet-stream"
+    if using_browser_mp4:
+        media_type = "video/mp4"
+
+        original_stem = Path(
+            meeting.original_filename
+        ).stem
+
+        download_filename = (
+            f"{original_stem}.mp4"
+        )
+    else:
+        media_type, _ = (
+            mimetypes.guess_type(
+                meeting.original_filename
+            )
+        )
+
+        if not media_type:
+            media_type = (
+                "application/octet-stream"
+            )
+
+        download_filename = (
+            meeting.original_filename
         )
 
     return FileResponse(
         path=media_path,
         media_type=media_type,
-        filename=(
-            meeting.original_filename
-        ),
+        filename=download_filename,
         content_disposition_type=(
             "inline"
         ),

@@ -475,6 +475,288 @@ def probe_media(
     )
 
 
+
+def build_browser_playback_path(
+    source_path: str | Path,
+) -> Path:
+    """
+    Build a deterministic, safe MP4 path used only for browser playback.
+
+    The original uploaded recording is preserved. The generated MP4 lives
+    under uploads/browser_media and can be reused on later media requests.
+    """
+
+    source = Path(
+        source_path
+    ).resolve()
+
+    browser_directory = (
+        settings.upload_path
+        / "browser_media"
+    ).resolve()
+
+    browser_directory.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    destination = (
+        browser_directory
+        / f"{source.stem}.mp4"
+    ).resolve()
+
+    try:
+        destination.relative_to(
+            browser_directory
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=(
+                status.HTTP_400_BAD_REQUEST
+            ),
+            detail=(
+                "Invalid browser playback path."
+            ),
+        ) from exc
+
+    return destination
+
+
+def _run_browser_playback_command(
+    command: list[str],
+    destination: Path,
+) -> tuple[int, str]:
+    """
+    Execute an FFmpeg browser-playback conversion command.
+    """
+
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError as exc:
+        if destination.exists():
+            destination.unlink()
+
+        raise HTTPException(
+            status_code=(
+                status.HTTP_500_INTERNAL_SERVER_ERROR
+            ),
+            detail=(
+                "FFmpeg could not be started while preparing "
+                "browser playback."
+            ),
+        ) from exc
+
+    return (
+        result.returncode,
+        result.stderr or "",
+    )
+
+
+def ensure_browser_playback_media(
+    source_path: str | Path,
+) -> str:
+    """
+    Return a browser-safe media path.
+
+    Chrome/MediaRecorder WebM files can contain H.264 video while exposing
+    no duration metadata. Browsers may then display an incorrect duration
+    and seeking can behave incorrectly.
+
+    For WebM video, create and cache an MP4 playback copy:
+    - H.264 is copied when possible, making the conversion very fast.
+    - Opus audio is converted to AAC for MP4 compatibility.
+    - If stream-copying the video fails, FFmpeg retries with H.264 encoding.
+    - The original upload is never overwritten.
+
+    Non-WebM files are returned unchanged.
+    """
+
+    ensure_ffmpeg_available()
+
+    source = Path(
+        source_path
+    ).resolve()
+
+    if (
+        not source.exists()
+        or not source.is_file()
+    ):
+        raise HTTPException(
+            status_code=(
+                status.HTTP_404_NOT_FOUND
+            ),
+            detail=(
+                "The source recording could not be found."
+            ),
+        )
+
+    if source.suffix.lower() != ".webm":
+        return str(source)
+
+    destination = (
+        build_browser_playback_path(
+            source
+        )
+    )
+
+    # Reuse an existing valid cached copy unless the source has changed.
+    if (
+        destination.exists()
+        and destination.is_file()
+        and destination.stat().st_size > 0
+        and destination.stat().st_mtime
+        >= source.stat().st_mtime
+    ):
+        return str(destination)
+
+    if destination.exists():
+        destination.unlink()
+
+    # First try the fast path that succeeded for Chrome-created H.264 WebM:
+    # copy video, transcode Opus -> AAC, rebuild timestamps and MP4 metadata.
+    copy_command = [
+        "ffmpeg",
+        "-y",
+        "-fflags",
+        "+genpts",
+        "-i",
+        str(source),
+        "-map",
+        "0:v:0?",
+        "-map",
+        "0:a:0?",
+        "-c:v",
+        "copy",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "128k",
+        "-movflags",
+        "+faststart",
+        "-avoid_negative_ts",
+        "make_zero",
+        str(destination),
+    ]
+
+    return_code, stderr = (
+        _run_browser_playback_command(
+            copy_command,
+            destination,
+        )
+    )
+
+    if (
+        return_code == 0
+        and destination.exists()
+        and destination.stat().st_size > 0
+    ):
+        return str(destination)
+
+    if destination.exists():
+        destination.unlink()
+
+    # Fallback for WebM video codecs that cannot be copied into MP4.
+    transcode_command = [
+        "ffmpeg",
+        "-y",
+        "-fflags",
+        "+genpts",
+        "-i",
+        str(source),
+        "-map",
+        "0:v:0?",
+        "-map",
+        "0:a:0?",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "veryfast",
+        "-crf",
+        "23",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "128k",
+        "-movflags",
+        "+faststart",
+        "-avoid_negative_ts",
+        "make_zero",
+        str(destination),
+    ]
+
+    fallback_code, fallback_stderr = (
+        _run_browser_playback_command(
+            transcode_command,
+            destination,
+        )
+    )
+
+    if (
+        fallback_code != 0
+        or not destination.exists()
+        or destination.stat().st_size == 0
+    ):
+        if destination.exists():
+            destination.unlink()
+
+        ffmpeg_error = (
+            fallback_stderr.strip()
+            or stderr.strip()
+        )
+
+        detail = (
+            "The recording could not be prepared for "
+            "browser-safe playback."
+        )
+
+        if ffmpeg_error:
+            detail += (
+                f" FFmpeg: {ffmpeg_error}"
+            )
+
+        raise HTTPException(
+            status_code=(
+                status.HTTP_422_UNPROCESSABLE_CONTENT
+            ),
+            detail=detail,
+        )
+
+    return str(destination)
+
+
+def delete_browser_playback_media(
+    source_path: str | Path | None,
+) -> None:
+    """
+    Delete the cached browser-safe MP4 generated for a source recording.
+
+    This helper is safe to call from the meeting-deletion flow.
+    """
+
+    if not source_path:
+        return
+
+    try:
+        destination = (
+            build_browser_playback_path(
+                source_path
+            )
+        )
+    except HTTPException:
+        return
+
+    if (
+        destination.exists()
+        and destination.is_file()
+    ):
+        destination.unlink()
+
+
 def build_normalized_audio_path() -> Path:
     """
     Create a safe destination path for normalized
