@@ -446,22 +446,21 @@ export function UploadPage() {
 
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-5xl overflow-x-hidden px-3 py-5 sm:px-5 sm:py-7 lg:px-8 lg:py-8">
-      <div className="min-w-0">
+    <div className="upload-screen mx-auto flex h-full w-full min-w-0 max-w-[1320px] flex-col gap-4 overflow-hidden px-3 py-4 sm:px-5 lg:px-6">
+      <div className="upload-heading shrink-0 rounded-2xl border border-white/8 bg-[#0d111b] p-4 sm:p-5">
         <h1 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">
           Upload meeting
         </h1>
 
-        <p className="mt-2 max-w-2xl break-words text-sm leading-6 text-slate-500">
-          Upload an audio or video
-          recording. Meeting Intelligence
-          will process the entire meeting
-          automatically.
+        <p className="mt-1 max-w-2xl break-words text-sm leading-6 text-slate-500">
+          Upload an audio or video recording.
+          Meeting Intelligence will process it
+          from normalization through AI notes.
         </p>
       </div>
 
-      <div className="mt-5 grid min-w-0 gap-4 sm:mt-7 sm:gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-        <section className="min-w-0 rounded-2xl border border-white/8 bg-[#0d111b] p-4 sm:p-5 lg:p-6">
+      <div className="upload-grid grid min-h-0 min-w-0 flex-1 gap-4 overflow-hidden lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)] lg:gap-5">
+        <section className="upload-form-panel min-h-0 min-w-0 overflow-y-auto rounded-2xl border border-white/8 bg-[#0d111b] p-4 sm:p-5 lg:p-6">
           <label className="block text-sm font-medium text-slate-200">
             Meeting title
           </label>
@@ -553,8 +552,7 @@ export function UploadPage() {
             </h2>
 
             <p className="mt-2 break-words text-[11px] leading-5 text-slate-500 sm:text-xs">
-              MP3, WAV, M4A, MP4 or
-              WEBM
+              MP3, WAV, M4A, MP4 or WEBM
             </p>
 
             <div className="mt-5 inline-flex max-w-full items-center justify-center rounded-lg border border-white/8 bg-white/5 px-3 py-2 text-xs font-medium text-slate-300 sm:mt-6">
@@ -627,76 +625,94 @@ export function UploadPage() {
           </button>
         </section>
 
-        <section className="min-w-0 rounded-2xl border border-white/8 bg-[#0d111b] p-4 sm:p-5 lg:p-6">
-          <div className="min-w-0">
+        <section className="upload-pipeline-panel flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-white/8 bg-[#0d111b]">
+          <div className="border-b border-white/8 px-4 py-4 sm:px-5 lg:px-6">
             <h2 className="font-semibold text-white">
               Processing pipeline
             </h2>
 
             <p className="mt-1 break-words text-xs leading-5 text-slate-500">
-              Each stage uses the real
-              backend processing services.
+              Every stage reflects the real
+              backend processing state.
             </p>
           </div>
 
-          <div className="mt-5 min-w-0 space-y-1 sm:mt-6">
-            {steps.map(
-              (
-                step,
-                index,
-              ) => (
-                <div
-                  key={step.key}
-                  className="relative flex min-w-0 gap-3 pb-5 sm:gap-4 sm:pb-6"
-                >
-                  {index <
-                    steps.length -
-                      1 && (
-                    <div className="absolute left-[15px] top-8 h-[calc(100%-18px)] w-px bg-white/8" />
-                  )}
-
+          <div className="upload-pipeline-scroll min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-5 lg:px-6">
+            <div className="min-w-0 space-y-1">
+              {steps.map(
+                (
+                  step,
+                  index,
+                ) => (
                   <div
-                    className={[
-                      "relative z-10 mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border",
-                      step.status ===
-                      "complete"
-                        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                        : step.status ===
-                            "running"
-                          ? "border-indigo-500/30 bg-indigo-500/10 text-indigo-300"
-                          : step.status ===
-                              "failed"
-                            ? "border-red-500/30 bg-red-500/10 text-red-300"
-                            : step.status ===
-                                "skipped"
-                              ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
-                              : "border-white/8 bg-[#080b12] text-slate-600",
-                    ].join(
-                      " ",
-                    )}
+                    key={step.key}
+                    className="relative flex min-w-0 gap-3 pb-5 sm:gap-4 sm:pb-6"
                   >
-                    {step.status ===
-                    "complete" ? (
-                      <CheckCircle2
-                        size={15}
-                      />
-                    ) : step.status ===
-                      "running" ? (
-                      <LoaderCircle
-                        size={15}
-                        className="animate-spin"
-                      />
-                    ) : (
-                      <span className="text-[11px] font-semibold">
-                        {index + 1}
-                      </span>
+                    {index <
+                      steps.length -
+                        1 && (
+                      <div className="absolute left-[15px] top-8 h-[calc(100%-18px)] w-px bg-white/8" />
                     )}
-                  </div>
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex min-w-0 items-center justify-between gap-3">
-                      <div className="break-words text-sm font-medium text-slate-200">
-                        {step.label}
+                    <div
+                      className={[
+                        "relative z-10 mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border",
+                        step.status ===
+                        "complete"
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+                          : step.status ===
+                              "running"
+                            ? "border-indigo-500/30 bg-indigo-500/10 text-indigo-300"
+                            : step.status ===
+                                "failed"
+                              ? "border-red-500/30 bg-red-500/10 text-red-300"
+                              : step.status ===
+                                  "skipped"
+                                ? "border-amber-500/30 bg-amber-500/10 text-amber-300"
+                                : "border-white/8 bg-[#080b12] text-slate-600",
+                      ].join(
+                        " ",
+                      )}
+                    >
+                      {step.status ===
+                      "complete" ? (
+                        <CheckCircle2
+                          size={15}
+                        />
+                      ) : step.status ===
+                        "running" ? (
+                        <LoaderCircle
+                          size={15}
+                          className="animate-spin"
+                        />
+                      ) : (
+                        <span className="text-[11px] font-semibold">
+                          {index + 1}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex min-w-0 items-center justify-between gap-3">
+                        <div className="break-words text-sm font-medium text-slate-200">
+                          {step.label}
+                        </div>
+
+                        {[
+                          "audio",
+                          "transcribe",
+                          "analyze",
+                        ].includes(
+                          step.key,
+                        ) &&
+                          (step.status ===
+                            "running" ||
+                            step.status ===
+                              "complete") && (
+                            <span className="shrink-0 text-xs font-semibold tabular-nums text-indigo-300">
+                              {step.progress}%
+                            </span>
+                          )}
                       </div>
 
                       {[
@@ -710,60 +726,42 @@ export function UploadPage() {
                           "running" ||
                           step.status ===
                             "complete") && (
-                          <span className="shrink-0 text-xs font-semibold tabular-nums text-indigo-300">
-                            {step.progress}%
-                          </span>
+                          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/8">
+                            <div
+                              className="h-full rounded-full bg-indigo-500 transition-[width] duration-300"
+                              style={{
+                                width: `${step.progress}%`,
+                              }}
+                            />
+                          </div>
                         )}
-                    </div>
 
-                    {[
-                      "audio",
-                      "transcribe",
-                      "analyze",
-                    ].includes(
-                      step.key,
-                    ) &&
-                      (step.status ===
-                        "running" ||
-                        step.status ===
-                          "complete") && (
-                        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/8">
-                          <div
-                            className="h-full rounded-full bg-indigo-500 transition-[width] duration-300"
-                            style={{
-                              width: `${step.progress}%`,
-                            }}
-                          />
+                      <div className="mt-1 break-words text-xs leading-5 text-slate-500">
+                        {step.description}
+                      </div>
+
+                      {step.status ===
+                        "skipped" && (
+                        <div className="mt-1 break-words text-xs leading-5 text-amber-300">
+                          Diarization was
+                          unavailable. Processing
+                          continued with the
+                          transcript.
                         </div>
                       )}
 
-                    <div className="mt-1 break-words text-xs leading-5 text-slate-500">
-                      {
-                        step.description
-                      }
+                      {step.status ===
+                        "failed" && (
+                        <div className="mt-1 text-xs leading-5 text-red-300">
+                          This processing stage
+                          failed.
+                        </div>
+                      )}
                     </div>
-
-                    {step.status ===
-                      "skipped" && (
-                      <div className="mt-1 break-words text-xs leading-5 text-amber-300">
-                        Diarization was
-                        unavailable.
-                        Processing continued
-                        with the transcript.
-                      </div>
-                    )}
-
-                    {step.status ===
-                      "failed" && (
-                      <div className="mt-1 text-xs leading-5 text-red-300">
-                        This processing stage
-                        failed.
-                      </div>
-                    )}
                   </div>
-                </div>
-              ),
-            )}
+                ),
+              )}
+            </div>
           </div>
         </section>
       </div>

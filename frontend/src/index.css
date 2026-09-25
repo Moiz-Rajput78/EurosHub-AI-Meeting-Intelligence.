@@ -23,29 +23,29 @@
 
   color-scheme: dark;
 
-  --app-bg: #080b12;
-  --app-bg-secondary: #0b0f18;
-  --surface: #0d111b;
-  --surface-elevated: #111722;
-  --surface-soft: rgba(255, 255, 255, 0.05);
-  --surface-hover: rgba(255, 255, 255, 0.08);
+  --app-bg: #070908;
+  --app-bg-secondary: #090c0b;
+  --surface: #0b0f0e;
+  --surface-elevated: #101513;
+  --surface-soft: rgba(255, 255, 255, 0.045);
+  --surface-hover: rgba(20, 184, 166, 0.08);
 
   --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
-  --text-subtle: #475569;
+  --text-muted: #7f8d88;
+  --text-subtle: #53615d;
 
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.075);
+  --border-strong: rgba(255, 255, 255, 0.13);
 
-  --accent: #6366f1;
-  --accent-hover: #818cf8;
-  --accent-soft: rgba(99, 102, 241, 0.1);
-  --accent-text: #a5b4fc;
+  --accent: #18b8a6;
+  --accent-hover: #2dd4bf;
+  --accent-soft: rgba(24, 184, 166, 0.11);
+  --accent-text: #5eead4;
 
-  --scroll-track: #080b12;
-  --scroll-thumb: #252b3a;
-  --scroll-thumb-hover: #343c50;
+  --scroll-track: #070908;
+  --scroll-thumb: #1d2a27;
+  --scroll-thumb-hover: #2b403a;
 }
 
 
@@ -770,4 +770,982 @@ html[data-theme="light"] .app-sidebar {
 html[data-theme="light"] .app-header {
   box-shadow:
     0 1px 0 rgba(16, 24, 40, 0.02);
+}
+
+/* ============================================================
+   EurosHub-inspired Dark Theme
+   Only dark mode is restyled here. The existing light theme above
+   remains unchanged.
+   ============================================================ */
+
+html[data-theme="dark"] body {
+  background:
+    radial-gradient(
+      circle at 70% -12%,
+      rgba(24, 184, 166, 0.08),
+      transparent 30%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 218px,
+      rgba(255, 255, 255, 0.035) 219px,
+      transparent 220px
+    ),
+    #070908;
+}
+
+html[data-theme="dark"] [class~="bg-[#080b12]"] {
+  background-color: #070908 !important;
+}
+
+html[data-theme="dark"] [class~="bg-[#0b0f18]"],
+html[data-theme="dark"] [class~="bg-[#0b0f18]/95"] {
+  background-color: rgba(8, 12, 11, 0.97) !important;
+}
+
+html[data-theme="dark"] [class~="bg-[#080b12]/95"],
+html[data-theme="dark"] [class~="bg-[#080b12]/85"] {
+  background-color: rgba(7, 9, 8, 0.94) !important;
+}
+
+html[data-theme="dark"] [class~="bg-[#0d111b]"] {
+  background-color: #0b0f0e !important;
+}
+
+html[data-theme="dark"] [class~="bg-[#111722]"] {
+  background-color: #101513 !important;
+}
+
+html[data-theme="dark"] [class~="bg-indigo-500"] {
+  background-color: #18b8a6 !important;
+}
+
+html[data-theme="dark"] [class~="hover:bg-indigo-400"]:hover {
+  background-color: #21c8b5 !important;
+}
+
+html[data-theme="dark"] [class~="bg-indigo-500/15"] {
+  background-color: rgba(24, 184, 166, 0.15) !important;
+}
+
+html[data-theme="dark"] [class~="bg-indigo-500/10"] {
+  background-color: rgba(24, 184, 166, 0.1) !important;
+}
+
+html[data-theme="dark"] [class~="bg-indigo-500/8"] {
+  background-color: rgba(24, 184, 166, 0.08) !important;
+}
+
+html[data-theme="dark"] [class~="bg-indigo-500/[0.055]"] {
+  background-color: rgba(24, 184, 166, 0.065) !important;
+}
+
+html[data-theme="dark"] [class~="text-indigo-300"] {
+  color: #5eead4 !important;
+}
+
+html[data-theme="dark"] [class~="text-indigo-200"] {
+  color: #99f6e4 !important;
+}
+
+html[data-theme="dark"] [class~="border-indigo-500/15"],
+html[data-theme="dark"] [class~="border-indigo-500/20"] {
+  border-color: rgba(24, 184, 166, 0.24) !important;
+}
+
+html[data-theme="dark"] [class~="border-indigo-500/30"],
+html[data-theme="dark"] [class~="border-indigo-500/40"] {
+  border-color: rgba(24, 184, 166, 0.42) !important;
+}
+
+html[data-theme="dark"] [class~="focus:border-indigo-500/50"]:focus {
+  border-color: rgba(45, 212, 191, 0.62) !important;
+  box-shadow: 0 0 0 3px rgba(24, 184, 166, 0.08);
+}
+
+html[data-theme="dark"] [class~="from-indigo-500"] {
+  --tw-gradient-from: #18b8a6 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to:
+    rgb(24 184 166 / 0)
+    var(--tw-gradient-to-position) !important;
+}
+
+html[data-theme="dark"] [class~="to-violet-600"] {
+  --tw-gradient-to: #0f9487 var(--tw-gradient-to-position) !important;
+}
+
+html[data-theme="dark"] [class~="from-indigo-500/10"] {
+  --tw-gradient-from:
+    rgba(24, 184, 166, 0.11)
+    var(--tw-gradient-from-position) !important;
+  --tw-gradient-to:
+    rgba(24, 184, 166, 0)
+    var(--tw-gradient-to-position) !important;
+}
+
+html[data-theme="dark"] [class~="to-violet-500/5"] {
+  --tw-gradient-to:
+    rgba(11, 92, 84, 0.08)
+    var(--tw-gradient-to-position) !important;
+}
+
+html[data-theme="dark"] .app-sidebar {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(8, 15, 14, 0.99),
+      rgba(7, 9, 8, 0.99)
+    ) !important;
+  box-shadow:
+    10px 0 34px rgba(0, 0, 0, 0.18);
+}
+
+html[data-theme="dark"] .app-header,
+html[data-theme="dark"] .meeting-workspace-header {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+html[data-theme="dark"] .meeting-notes-panel {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(10, 15, 14, 0.99),
+      rgba(7, 10, 9, 0.99)
+    ) !important;
+}
+
+html[data-theme="dark"] .notes-summary-card {
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.18);
+}
+
+html[data-theme="dark"] .meeting-player {
+  border-color: rgba(24, 184, 166, 0.14) !important;
+}
+
+html[data-theme="dark"] .meeting-audio-shell {
+  background:
+    radial-gradient(
+      circle at 20% 0%,
+      rgba(24, 184, 166, 0.12),
+      transparent 40%
+    ),
+    #050706;
+}
+
+
+/* ============================================================
+   Meeting Workspace / Internal Scrolling
+   ============================================================ */
+
+.meeting-workspace {
+  height: 100%;
+  min-height: 0;
+}
+
+.meeting-workspace-main,
+.meeting-notes-panel,
+.meeting-center-scroll,
+.meeting-notes-scroll,
+.transcript-workspace,
+.transcript-list {
+  min-height: 0;
+}
+
+.meeting-center-scroll,
+.meeting-notes-scroll,
+.transcript-list {
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.meeting-player-video {
+  aspect-ratio: 16 / 9;
+  max-height: 44vh;
+  min-height: 240px;
+}
+
+.transcript-workspace {
+  height: clamp(360px, 44vh, 560px);
+}
+
+@media (min-width: 1280px) {
+  .meeting-center-scroll {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .meeting-player {
+    flex: 0 0 auto;
+  }
+
+  .transcript-workspace {
+    flex: 1 1 0%;
+    height: auto;
+    min-height: 320px;
+  }
+}
+
+@media (max-width: 1279px) {
+  .meeting-workspace {
+    overflow-y: auto;
+  }
+
+  .meeting-workspace > .grid {
+    height: auto;
+    min-height: 100%;
+  }
+
+  .meeting-workspace-main,
+  .meeting-notes-panel {
+    overflow: visible;
+  }
+
+  .meeting-center-scroll,
+  .meeting-notes-scroll {
+    overflow: visible;
+  }
+
+  .meeting-notes-panel {
+    min-height: 520px;
+  }
+}
+
+@media (max-width: 640px) {
+  .meeting-player-video {
+    min-height: 190px;
+  }
+
+  .transcript-workspace {
+    height: 520px;
+  }
+}
+
+
+/* ============================================================
+   Final meeting-workspace polish
+   ============================================================ */
+
+.app-shell {
+  background: var(--app-bg) !important;
+}
+
+.meeting-workspace {
+  background: var(--app-bg);
+}
+
+.meeting-workspace-header {
+  background: var(--surface) !important;
+  color: var(--text-primary);
+}
+
+.meeting-workspace-main {
+  background: var(--app-bg);
+}
+
+.meeting-center-scroll {
+  background: var(--app-bg);
+}
+
+.meeting-notes-panel {
+  background: var(--surface) !important;
+  border-left-color: var(--border) !important;
+}
+
+.meeting-notes-scroll {
+  background: var(--app-bg);
+}
+
+.transcript-workspace,
+.notes-summary-card {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+}
+
+.meeting-player {
+  width: 100%;
+  max-width: 100%;
+}
+
+.meeting-player-video {
+  width: 100%;
+  min-height: 0;
+  max-height: 39vh;
+  aspect-ratio: 16 / 9;
+}
+
+.transcript-workspace {
+  min-height: 330px;
+}
+
+html[data-theme="light"] .meeting-workspace-header,
+html[data-theme="light"] .meeting-notes-panel,
+html[data-theme="light"] .transcript-workspace,
+html[data-theme="light"] .notes-summary-card {
+  background: #ffffff !important;
+}
+
+html[data-theme="light"] .meeting-workspace-main,
+html[data-theme="light"] .meeting-center-scroll,
+html[data-theme="light"] .meeting-notes-scroll {
+  background: #f8faf9 !important;
+}
+
+html[data-theme="light"] .meeting-workspace-header {
+  box-shadow: 0 1px 0 rgba(16, 24, 40, 0.05);
+}
+
+html[data-theme="light"] .meeting-notes-panel {
+  box-shadow: -1px 0 0 rgba(16, 24, 40, 0.04);
+}
+
+@media (min-width: 1280px) {
+  .meeting-workspace {
+    overflow: hidden;
+  }
+
+  .meeting-workspace > .grid {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .meeting-workspace-main,
+  .meeting-notes-panel {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .meeting-center-scroll,
+  .meeting-notes-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .meeting-center-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .meeting-player {
+    flex: 0 0 auto;
+  }
+
+  .transcript-workspace {
+    flex: 1 1 0%;
+    height: auto;
+    min-height: 330px;
+    max-height: none;
+  }
+
+  .transcript-list {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
+
+@media (min-width: 1536px) {
+  .meeting-player-video {
+    max-height: 41vh;
+  }
+}
+
+@media (max-width: 1279px) {
+  .meeting-player-video {
+    max-height: none;
+  }
+}
+
+
+/* ============================================================
+   Clean meeting workspace refinements
+   ============================================================ */
+
+.meeting-workspace-main {
+  background: var(--app-bg);
+}
+
+.meeting-workspace-header {
+  background: var(--surface) !important;
+  border-bottom-color: var(--border) !important;
+}
+
+.meeting-center-scroll {
+  background: var(--app-bg);
+}
+
+.meeting-player {
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+.meeting-player-video {
+  max-height: 35vh !important;
+  min-height: 260px;
+  aspect-ratio: 16 / 9;
+}
+
+.meeting-speakers-strip,
+.transcript-workspace,
+.notes-summary-card {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  box-shadow: none !important;
+}
+
+.meeting-speakers-strip {
+  flex: 0 0 auto;
+  min-height: 56px;
+  overflow: visible;
+}
+
+.meeting-speakers-strip > div {
+  min-height: 30px;
+}
+
+.meeting-speakers-strip ::-webkit-scrollbar {
+  height: 5px;
+}
+
+.meeting-notes-panel {
+  background: var(--app-bg) !important;
+  border-left-color: var(--border) !important;
+}
+
+.meeting-notes-panel > div:first-child {
+  background: var(--surface);
+}
+
+.meeting-notes-scroll {
+  background: var(--app-bg);
+  padding: 14px !important;
+}
+
+.notes-summary-card {
+  border-radius: 18px !important;
+}
+
+.transcript-workspace {
+  border-radius: 18px !important;
+}
+
+.transcript-workspace > div:first-child {
+  background: var(--surface);
+}
+
+.transcript-list article {
+  align-items: start;
+}
+
+html[data-theme="light"] .meeting-workspace-main,
+html[data-theme="light"] .meeting-center-scroll,
+html[data-theme="light"] .meeting-notes-panel,
+html[data-theme="light"] .meeting-notes-scroll {
+  background: #f6f8f7 !important;
+}
+
+html[data-theme="light"] .meeting-workspace-header,
+html[data-theme="light"] .meeting-speakers-strip,
+html[data-theme="light"] .transcript-workspace,
+html[data-theme="light"] .notes-summary-card,
+html[data-theme="light"] .meeting-notes-panel > div:first-child {
+  background: #ffffff !important;
+}
+
+html[data-theme="light"] .meeting-player {
+  border-color: #dfe5e3 !important;
+}
+
+@media (min-width: 1280px) {
+  .meeting-workspace > .grid {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .meeting-workspace-main,
+  .meeting-notes-panel {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .meeting-center-scroll,
+  .meeting-notes-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .transcript-workspace {
+    min-height: 310px;
+  }
+}
+
+@media (min-width: 1536px) {
+  .meeting-player-video {
+    max-height: 38vh !important;
+  }
+}
+
+@media (max-width: 1279px) {
+  .meeting-player-video {
+    min-height: 0;
+    max-height: none !important;
+  }
+}
+
+
+/* ============================================================
+   FINAL CLEAN UI PASS
+   ============================================================ */
+
+:root {
+  --ui-radius: 16px;
+  --ui-gap: 14px;
+}
+
+.app-sidebar {
+  width: 248px !important;
+}
+
+.app-header {
+  height: 56px !important;
+}
+
+.dashboard-screen {
+  min-height: 0;
+}
+
+.dashboard-heading,
+.dashboard-screen section {
+  box-shadow: none !important;
+}
+
+.dashboard-recent-list {
+  overscroll-behavior: contain;
+}
+
+.meeting-workspace {
+  background: var(--app-bg);
+}
+
+.meeting-workspace-header {
+  min-height: 78px;
+  background: var(--surface) !important;
+  border-bottom-color: var(--border) !important;
+}
+
+.meeting-workspace-main {
+  background: var(--app-bg);
+}
+
+.meeting-center-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--app-bg);
+}
+
+.meeting-player {
+  flex: 0 0 auto;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+.meeting-player-video {
+  min-height: 0 !important;
+  max-height: 34vh !important;
+  aspect-ratio: 16 / 9;
+}
+
+.meeting-speakers-strip {
+  flex: 0 0 auto;
+  min-height: 48px !important;
+  overflow: hidden !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+
+.meeting-speakers-strip > div {
+  min-height: 28px !important;
+}
+
+.meeting-speakers-strip > div > div:last-child {
+  scrollbar-width: thin;
+}
+
+.transcript-workspace {
+  flex: 1 1 0%;
+  min-height: 0 !important;
+  max-height: none !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+.transcript-workspace > div:first-child {
+  flex: 0 0 auto;
+}
+
+.transcript-list {
+  min-height: 0;
+  flex: 1 1 0%;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.meeting-notes-panel {
+  min-height: 0;
+  background: var(--app-bg) !important;
+  border-left-color: var(--border) !important;
+}
+
+.meeting-notes-panel > div:first-child {
+  min-height: 78px;
+  background: var(--surface) !important;
+}
+
+.meeting-notes-scroll {
+  min-height: 0;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: 12px !important;
+  background: var(--app-bg) !important;
+}
+
+.notes-summary-card {
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .app-sidebar,
+html[data-theme="dark"] .app-header,
+html[data-theme="dark"] .meeting-workspace-header,
+html[data-theme="dark"] .meeting-notes-panel > div:first-child {
+  background: #070a09 !important;
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] .meeting-workspace,
+html[data-theme="dark"] .meeting-workspace-main,
+html[data-theme="dark"] .meeting-center-scroll,
+html[data-theme="dark"] .meeting-notes-panel,
+html[data-theme="dark"] .meeting-notes-scroll {
+  background: #050807 !important;
+}
+
+html[data-theme="dark"] .meeting-player,
+html[data-theme="dark"] .meeting-speakers-strip,
+html[data-theme="dark"] .transcript-workspace,
+html[data-theme="dark"] .notes-summary-card,
+html[data-theme="dark"] .dashboard-heading,
+html[data-theme="dark"] .dashboard-screen section {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html[data-theme="light"] .dashboard-screen,
+html[data-theme="light"] .meeting-workspace,
+html[data-theme="light"] .meeting-workspace-main,
+html[data-theme="light"] .meeting-center-scroll,
+html[data-theme="light"] .meeting-notes-panel,
+html[data-theme="light"] .meeting-notes-scroll {
+  background: #f6f8f7 !important;
+}
+
+html[data-theme="light"] .meeting-workspace-header,
+html[data-theme="light"] .meeting-notes-panel > div:first-child,
+html[data-theme="light"] .meeting-speakers-strip,
+html[data-theme="light"] .transcript-workspace,
+html[data-theme="light"] .notes-summary-card,
+html[data-theme="light"] .dashboard-heading {
+  background: #ffffff !important;
+}
+
+@media (min-width: 1280px) {
+  .meeting-workspace > .grid {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .meeting-workspace-main,
+  .meeting-notes-panel {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .meeting-center-scroll {
+    min-height: 0;
+    overflow: hidden !important;
+  }
+
+  .transcript-workspace {
+    min-height: 260px !important;
+  }
+
+  .meeting-notes-scroll {
+    height: 100%;
+  }
+}
+
+@media (min-width: 1536px) {
+  .meeting-player-video {
+    max-height: 36vh !important;
+  }
+}
+
+@media (max-width: 1279px) {
+  .app-sidebar {
+    width: 248px !important;
+  }
+
+  .meeting-center-scroll {
+    overflow-y: auto !important;
+  }
+
+  .meeting-player-video {
+    max-height: none !important;
+  }
+
+  .transcript-workspace {
+    min-height: 420px !important;
+  }
+}
+
+
+/* ============================================================
+   Fixed upload workspace
+   ============================================================ */
+
+.upload-screen {
+  min-height: 0;
+}
+
+.upload-heading {
+  flex: 0 0 auto;
+  box-shadow: none !important;
+}
+
+.upload-grid {
+  min-height: 0;
+}
+
+.upload-form-panel,
+.upload-pipeline-panel {
+  min-height: 0;
+  box-shadow: none !important;
+}
+
+.upload-form-panel,
+.upload-pipeline-scroll {
+  overscroll-behavior: contain;
+}
+
+html[data-theme="light"] .upload-screen {
+  background: #f6f8f7;
+}
+
+@media (min-width: 1024px) {
+  .upload-screen {
+    overflow: hidden;
+  }
+
+  .upload-grid {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .upload-form-panel,
+  .upload-pipeline-panel {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .upload-form-panel {
+    overflow-y: auto;
+  }
+
+  .upload-pipeline-scroll {
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  .upload-screen {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
+  }
+
+  .upload-grid {
+    overflow: visible;
+  }
+
+  .upload-form-panel,
+  .upload-pipeline-panel {
+    overflow: visible;
+  }
+
+  .upload-pipeline-scroll {
+    overflow: visible;
+  }
+}
+
+
+/* ============================================================
+   Light theme surface fixes
+   ============================================================ */
+
+/* The app header has a dark Tailwind background in AppLayout.
+   Force it to the light surface whenever light mode is active. */
+html[data-theme="light"] .app-header {
+  background: #ffffff !important;
+  border-bottom-color: #e6eae9 !important;
+  box-shadow: 0 1px 0 rgba(16, 24, 40, 0.04);
+}
+
+/* Keep the area behind dashboard stat cards transparent.
+   A previous generic ".dashboard-screen section" rule made the
+   entire grid wrapper white, creating the white strip under cards. */
+html[data-theme="light"] .dashboard-screen > section {
+  background: transparent !important;
+}
+
+/* Re-apply white only to the actual dashboard cards/panels. */
+html[data-theme="light"] .dashboard-heading,
+html[data-theme="light"] .dashboard-screen > section > div,
+html[data-theme="light"] .dashboard-screen > section.flex {
+  background: #ffffff !important;
+}
+
+/* The stats grid itself must remain transparent so page background
+   is visible through the gaps and below the cards. */
+html[data-theme="light"] .dashboard-screen > section.grid {
+  background: transparent !important;
+}
+
+/* Recent meetings panel should remain a white surface. */
+html[data-theme="light"] .dashboard-screen > section.flex.min-h-0 {
+  background: #ffffff !important;
+}
+
+/* Keep fixed-page light backgrounds consistent. */
+html[data-theme="light"] .app-shell,
+html[data-theme="light"] body,
+html[data-theme="light"] main,
+html[data-theme="light"] .dashboard-screen,
+html[data-theme="light"] .upload-screen {
+  background: #f6f8f7 !important;
+}
+
+
+/* ============================================================
+   Dashboard header full-white light-mode fix
+   ============================================================ */
+
+/* The dashboard heading card itself must be fully white.
+   This overrides any inherited soft-gray background on the wrapper. */
+html[data-theme="light"] .dashboard-heading {
+  background: #ffffff !important;
+}
+
+/* Ensure all direct children of the dashboard heading remain transparent
+   so the full white surface is continuous and not split into gray/white areas. */
+html[data-theme="light"] .dashboard-heading > div,
+html[data-theme="light"] .dashboard-heading > div > div {
+  background: transparent !important;
+}
+
+/* Keep the text/action row from inheriting generic dashboard section fills. */
+html[data-theme="light"] .dashboard-heading * {
+  box-shadow: none;
+}
+
+
+/* ============================================================
+   Dashboard heading specificity fix
+   ============================================================ */
+
+/* This selector intentionally has higher specificity than:
+   html[data-theme="light"] .dashboard-screen > section
+   so the dashboard heading card is completely white. */
+html[data-theme="light"] .dashboard-screen > section.dashboard-heading {
+  background: #ffffff !important;
+}
+
+
+/* ============================================================
+   Final meeting-detail density polish
+   ============================================================ */
+
+.meeting-workspace-header {
+  min-height: 70px !important;
+}
+
+.meeting-player-video {
+  max-height: 31vh !important;
+}
+
+.transcript-workspace {
+  border-radius: 14px !important;
+}
+
+.transcript-list {
+  scrollbar-width: thin;
+}
+
+.transcript-list > div,
+.meeting-notes-scroll {
+  scrollbar-width: thin;
+}
+
+.notes-summary-card {
+  border-radius: 14px !important;
+}
+
+.meeting-notes-panel > div:first-child {
+  min-height: 70px !important;
+}
+
+.meeting-notes-scroll section {
+  border-color: color-mix(
+    in srgb,
+    var(--border) 78%,
+    transparent
+  ) !important;
+}
+
+html[data-theme="light"] .transcript-workspace,
+html[data-theme="light"] .notes-summary-card {
+  border-color: #e7ebea !important;
+}
+
+html[data-theme="light"] .meeting-workspace-header,
+html[data-theme="light"] .meeting-notes-panel > div:first-child {
+  box-shadow: none !important;
+}
+
+html[data-theme="dark"] .transcript-workspace,
+html[data-theme="dark"] .notes-summary-card {
+  border-color: rgba(255, 255, 255, 0.065) !important;
+}
+
+@media (min-width: 1536px) {
+  .meeting-player-video {
+    max-height: 33vh !important;
+  }
+}
+
+@media (max-width: 1279px) {
+  .meeting-player-video {
+    max-height: none !important;
+  }
+
+  .meeting-workspace-header {
+    min-height: auto !important;
+  }
 }

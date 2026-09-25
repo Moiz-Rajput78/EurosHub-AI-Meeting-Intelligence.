@@ -11,11 +11,8 @@ import type {
 
 interface Props {
   meetingId: number;
-
   filename: string;
-
   mediaUrl: string;
-
   mediaRef: MutableRefObject<
     HTMLMediaElement | null
   >;
@@ -53,40 +50,9 @@ export function MeetingPlayer({
     );
 
   return (
-    <section className="min-w-0 overflow-hidden rounded-2xl border border-white/8 bg-[#0d111b]">
-      <div className="flex min-w-0 items-center justify-between gap-3 border-b border-white/8 px-4 py-3 sm:px-5 sm:py-4 lg:px-6">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/8 bg-white/5 text-indigo-300">
-            {video ? (
-              <Video size={17} />
-            ) : (
-              <Headphones
-                size={17}
-              />
-            )}
-          </div>
-
-          <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold text-white">
-              Meeting recording
-            </h2>
-
-            <p className="mt-0.5 truncate text-[11px] text-slate-600 sm:text-xs">
-              {filename}
-            </p>
-          </div>
-        </div>
-
-        <div className="hidden shrink-0 items-center gap-1.5 text-xs text-slate-600 lg:flex">
-          <Play size={12} />
-
-          Click a transcript timestamp
-          to jump
-        </div>
-      </div>
-
+    <section className="meeting-player min-w-0 overflow-hidden rounded-2xl border border-white/8 bg-black shadow-2xl shadow-black/20">
       {video ? (
-        <div className="aspect-video w-full overflow-hidden bg-black">
+        <div className="meeting-player-video relative w-full overflow-hidden bg-black">
           <video
             ref={(element) => {
               mediaRef.current =
@@ -103,7 +69,29 @@ export function MeetingPlayer({
           </video>
         </div>
       ) : (
-        <div className="p-4 sm:p-5 lg:p-6">
+        <div className="meeting-audio-shell flex min-h-[190px] flex-col justify-between gap-6 p-5 sm:p-6">
+          <div className="flex min-w-0 items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/8 bg-white/5 text-indigo-300">
+              <Headphones
+                size={21}
+              />
+            </div>
+
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-sm font-semibold text-white">
+                <Video
+                  size={15}
+                  className="text-indigo-300"
+                />
+                Meeting recording
+              </div>
+
+              <p className="mt-1 truncate text-xs text-slate-500">
+                {filename}
+              </p>
+            </div>
+          </div>
+
           <audio
             ref={(element) => {
               mediaRef.current =
@@ -117,6 +105,11 @@ export function MeetingPlayer({
             Your browser does not
             support audio playback.
           </audio>
+
+          <div className="flex items-center gap-2 text-xs text-slate-600">
+            <Play size={12} />
+            Click any transcript timestamp to jump to that moment.
+          </div>
         </div>
       )}
     </section>

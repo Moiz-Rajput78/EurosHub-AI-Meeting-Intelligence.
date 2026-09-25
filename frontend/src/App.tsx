@@ -17,10 +17,6 @@ import {
 } from "./pages/MeetingDetailPage";
 
 import {
-  MeetingsPage,
-} from "./pages/MeetingsPage";
-
-import {
   UploadPage,
 } from "./pages/UploadPage";
 
@@ -43,7 +39,10 @@ function App() {
         <Route
           path="meetings"
           element={
-            <MeetingsPage />
+            <Navigate
+              to="/"
+              replace
+            />
           }
         />
 

@@ -94,16 +94,16 @@ export function ExportMenu({
               !current,
           )
         }
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/8 bg-white/5 px-4 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/8 hover:text-white sm:w-auto"
+        className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-white/8 bg-white/5 px-3 text-[13px] font-medium text-slate-300 transition hover:bg-white/8 hover:text-white sm:w-auto"
       >
         <Download
-          size={16}
+          size={14}
         />
 
         Export
 
         <ChevronDown
-          size={14}
+          size={12}
           className={[
             "transition-transform",
             open
@@ -114,7 +114,7 @@ export function ExportMenu({
       </button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-xl border border-white/10 bg-[#111722] p-1.5 shadow-2xl shadow-black/40 sm:left-auto sm:right-0 sm:w-52">
+        <div className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 overflow-hidden rounded-xl border border-white/10 bg-[#111722] p-1.5 shadow-2xl shadow-black/40 sm:left-auto sm:right-0 sm:w-48">
           <button
             type="button"
             onClick={() =>
@@ -125,7 +125,7 @@ export function ExportMenu({
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-300 transition hover:bg-white/6 hover:text-white"
           >
             <FileText
-              size={16}
+              size={15}
               className="text-red-300"
             />
 
@@ -142,7 +142,7 @@ export function ExportMenu({
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-300 transition hover:bg-white/6 hover:text-white"
           >
             <FileText
-              size={16}
+              size={15}
               className="text-indigo-300"
             />
 
@@ -159,7 +159,7 @@ export function ExportMenu({
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-300 transition hover:bg-white/6 hover:text-white"
           >
             <FileText
-              size={16}
+              size={15}
               className="text-slate-400"
             />
 
