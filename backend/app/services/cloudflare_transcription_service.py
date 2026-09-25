@@ -492,9 +492,15 @@ def _request_chunk(
                 ]
 
     if not segments:
-        raise ValueError(
-            "Cloudflare did not return any speech "
-            "for this audio chunk."
+        logger.warning(
+            "[TRANSCRIPTION] Cloudflare returned no speech for chunk %s "
+            "(core %.2fs-%.2fs, extracted %.2fs-%.2fs). "
+            "Skipping this chunk and continuing.",
+            chunk.index,
+            chunk.core_start,
+            chunk.core_end,
+            chunk.extract_start,
+            chunk.extract_end,
         )
 
     language_value: str | None = None
