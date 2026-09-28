@@ -576,7 +576,7 @@ function AppLayoutContent() {
                 </div>
 
                 <div className="mt-0.5 text-[11px] text-slate-600">
-                  Light / dark
+                  Light / Dark
                 </div>
               </div>
 
